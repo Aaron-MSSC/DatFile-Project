@@ -1,0 +1,13 @@
+{
+  "name": "excel-dat-converter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser-based Excel to BIR DAT converter",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}

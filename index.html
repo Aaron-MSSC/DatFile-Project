@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Excel to DAT Converter</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/vendor/xlsx.full.min.js"></script>
+    <script defer src="/converter.js"></script>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="DAT Converter home">
+        <span class="brand-mark" aria-hidden="true">D</span>
+        <span>DAT Converter</span>
+      </a>
+      <span class="privacy-note"><span class="privacy-dot"></span> Files stay on this device</span>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro">
+        <p class="eyebrow">BIR ALPHALIST EXPORT</p>
+        <h1>Excel to DAT</h1>
+        <p class="intro-copy">Convert a report workbook into a validator-ready DAT file.</p>
+      </section>
+
+      <form id="converter-form" novalidate>
+        <section class="card upload-card" aria-labelledby="upload-title">
+          <div class="section-heading">
+            <span class="step-number">01</span>
+            <div>
+              <h2 id="upload-title">Choose an Excel workbook</h2>
+              <p>Use an <strong>.xlsx</strong> file. Legacy .xls files are not supported.</p>
+            </div>
+          </div>
+          <label class="dropzone" id="dropzone" for="workbook-file">
+            <span class="upload-icon" aria-hidden="true">↑</span>
+            <span class="drop-title">Drop your workbook here</span>
+            <span class="drop-subtitle">or <span class="browse-link">browse files</span></span>
+            <input id="workbook-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+          </label>
+          <p id="file-status" class="file-status" aria-live="polite">No workbook selected</p>
+          <div id="worksheet-control" class="field compact-field hidden">
+            <label for="worksheet">Worksheet</label>
+            <select id="worksheet" disabled></select>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="report-title">
+          <div class="section-heading">
+            <span class="step-number">02</span>
+            <div>
+              <h2 id="report-title">Report details</h2>
+              <p>Select the format and reporting month for this workbook.</p>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="report-type">Reporting type</label>
+              <select id="report-type" required>
+                <option value="1600VT">1600VT — Monthly Alphalist of Payees (MAP)</option>
+                <option value="1601EQ">1601EQ — Quarterly Alphalist of Payees (QAP)</option>
+              </select>
+              <span class="field-hint">Only use the type that matches the selected workbook.</span>
+            </div>
+            <div class="field">
+              <label for="reporting-period">Reporting period</label>
+              <input id="reporting-period" type="month" required>
+              <span class="field-hint">Written to the DAT record as MM/YYYY.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="agent-title">
+          <div class="section-heading">
+            <span class="step-number">03</span>
+            <div>
+              <h2 id="agent-title">Withholding agent</h2>
+              <p>These details are written to the file header and output filename.</p>
+            </div>
+          </div>
+          <div class="form-grid form-grid-agent">
+            <div class="field">
+              <label for="agent-tin">TIN <span class="required-mark">*</span></label>
+              <input id="agent-tin" type="text" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="9 digits" required>
+            </div>
+            <div class="field">
+              <label for="agent-branch">Branch code <span class="required-mark">*</span></label>
+              <input id="agent-branch" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="4 digits" required>
+            </div>
+            <div class="field">
+              <label for="agent-rdo">RDO code <span class="required-mark">*</span></label>
+              <input id="agent-rdo" type="text" inputmode="numeric" autocomplete="off" maxlength="3" placeholder="3 digits" required>
+            </div>
+            <div class="field field-wide">
+              <label for="agent-name">Registered name <span class="required-mark">*</span></label>
+              <input id="agent-name" type="text" maxlength="100" autocomplete="organization" placeholder="Withholding agent registered name" required>
+            </div>
+          </div>
+        </section>
+
+        <section id="preview-card" class="card preview-card hidden" aria-labelledby="preview-title">
+          <div class="section-heading preview-heading">
+            <span class="step-number">04</span>
+            <div>
+              <h2 id="preview-title">Source data preview</h2>
+              <p id="preview-summary">Review the worksheet before creating the DAT file.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="preview-table"></table>
+          </div>
+          <div id="column-status" class="column-status" aria-live="polite"></div>
+        </section>
+
+        <section id="result-card" class="result-card hidden" role="status" aria-live="polite">
+          <div class="result-icon" aria-hidden="true">✓</div>
+          <div>
+            <h2>DAT file is ready</h2>
+            <p id="result-summary"></p>
+            <p id="result-filename" class="result-filename"></p>
+            <a id="download-result" class="download-link" href="#" download>Download DAT file</a>
+          </div>
+        </section>
+
+        <div id="error-message" class="error-message hidden" role="alert"></div>
+        <div class="actions">
+          <button id="convert-button" class="primary-button" type="submit" disabled>
+            <span>Convert and download</span>
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </form>
+
+      <footer class="page-footer">
+        <p>Conversion runs in your browser. The workbook is not uploaded to a server.</p>
+        <p>DAT format: comma-delimited header, detail, and control records.</p>
+      </footer>
+    </main>
+  </body>
+</html>
