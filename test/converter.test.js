@@ -199,6 +199,196 @@ test("generates a Debit Memo Journal with vendor fields and memo control totals"
   ]);
 });
 
+test("generates a Disbursement Journal with supplier, checks, and CDJ control totals", () => {
+  const result = buildDat({
+    headers: [
+      "Date",
+      "Supplier Name",
+      "Reference No.",
+      "Journal Entry No.",
+      "Check No.",
+      "Details",
+      "GL Account",
+      "GL Account Name",
+      "Debit",
+      "Credit",
+      "Return Period"
+    ],
+    rows: [
+      ["03/07/2024", "Supplier ABC", "PV-001", "2001", "CHK-101", "Payment for supplies", "2010", "Accounts Payable", 500, "", "03/2024"]
+    ],
+    reportType: "DJ",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024DJ.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HDJ,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DDJ,03/07/2024,Supplier ABC,PV001,2001,CHK101,Payment for supplies,2010,Accounts Payable,500.00,0.00,03/2024",
+    "C,CDJ,987654321,3333,03/2024,500.00,0.00,0.00,0.00,500.00"
+  ]);
+});
+
+test("generates a General Journal with reference, description, account, debit, credit", () => {
+  const result = buildDat({
+    headers: [
+      "Date",
+      "Reference No.",
+      "Description",
+      "Account",
+      "Debit",
+      "Credit",
+      "Return Period"
+    ],
+    rows: [
+      ["03/08/2024", "JV-001", "Depreciation expense", "5010", 250, "", "03/2024"],
+      ["03/08/2024", "JV-001", "Accumulated depreciation", "1510", "", 250, "03/2024"]
+    ],
+    reportType: "GJ",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024GJ.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HGJB,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DGJB,03/08/2024,JV001,Depreciation expense,5010,250.00,0.00,03/2024",
+    "D,DGJB,03/08/2024,JV001,Accumulated depreciation,1510,0.00,250.00,03/2024",
+    "C,CGJB,987654321,3333,03/2024,250.00,250.00"
+  ]);
+});
+
+test("generates a General Ledger with document, transaction, debit, credit, balance", () => {
+  const result = buildDat({
+    headers: [
+      "Date",
+      "Document No.",
+      "Transaction No.",
+      "Description",
+      "Debit",
+      "Credit",
+      "Balance",
+      "Return Period"
+    ],
+    rows: [
+      ["03/09/2024", "DOC-001", "TR-100", "Initial balance", 1000, "", 1000, "03/2024"]
+    ],
+    reportType: "GL",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024GL.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HGLB,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DGLB,03/09/2024,DOC001,TR100,Initial balance,1000.00,0.00,1000.00,03/2024",
+    "C,CGLB,987654321,3333,03/2024,1000.00,0.00,1000.00"
+  ]);
+});
+
+test("generates an Inventory Journal without control records", () => {
+  const result = buildDat({
+    headers: [
+      "Item Description",
+      "Date",
+      "Reference No.",
+      "Warehouse",
+      "Quantity",
+      "UOM",
+      "Price",
+      "Total",
+      "Return Period"
+    ],
+    rows: [
+      ["Widget A", "03/10/2024", "REC-001", "WH-01", 10, "PCS", 50, 500, "03/2024"]
+    ],
+    reportType: "IJ",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024IJ.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HIJ,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DIJ,Widget A,03/10/2024,REC001,WH01,10.00,PCS,50.00,500.00,03/2024"
+  ]);
+});
+
+test("generates a Purchase Journal with tax breakdown and CPJ control totals", () => {
+  const result = buildDat({
+    headers: [
+      "Date",
+      "Vendor TIN",
+      "Vendor Name",
+      "Vendor Address",
+      "Description",
+      "Reference No.",
+      "Gross Amount",
+      "Vatable Amount",
+      "VAT Exempt Amount",
+      "Zero Rated Amount",
+      "Discount Amount",
+      "VAT Amount",
+      "Net Amount",
+      "Return Period"
+    ],
+    rows: [
+      ["03/11/2024", "111222333", "Vendor X", "Quezon City", "Inventory purchase", "INV-100", 1120, 1000, 25, 10, 0, 120, 1120, "03/2024"]
+    ],
+    reportType: "PJ",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024PJ.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HPJ,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DPJ,03/11/2024,111222333,Vendor X,Quezon City,Inventory purchase,INV100,1120.00,1000.00,25.00,10.00,0.00,120.00,1120.00,03/2024",
+    "C,CPJ,987654321,3333,03/2024,1120.00,1000.00,25.00,10.00,0.00,120.00,1120.00"
+  ]);
+});
+
+test("generates a Sales Journal with tax breakdown and CSJ control totals", () => {
+  const result = buildDat({
+    headers: [
+      "Date",
+      "Customer TIN",
+      "Customer Name",
+      "Customer Address",
+      "Description",
+      "Reference No.",
+      "Gross Amount",
+      "Vatable Amount",
+      "VAT Exempt Amount",
+      "Zero Rated Amount",
+      "Discount Amount",
+      "VAT Amount",
+      "Net Amount",
+      "Return Period"
+    ],
+    rows: [
+      ["03/12/2024", "444555666", "Customer Y", "Makati City", "Product sales", "SI-200", 2240, 2000, 35, 15, 0, 240, 2240, "03/2024"]
+    ],
+    reportType: "SJ",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "9876543213333032024SJ.DAT");
+  assert.deepEqual(result.text.split("\r\n"), [
+    "H,HSJ,987654321,3333,CONDE CRISTINA MONDELO,03/2024,143",
+    "D,DSJ,03/12/2024,444555666,Customer Y,Makati City,Product sales,SI200,2240.00,2000.00,35.00,15.00,0.00,240.00,2240.00,03/2024",
+    "C,CSJ,987654321,3333,03/2024,2240.00,2000.00,35.00,15.00,0.00,240.00,2240.00"
+  ]);
+});
+
 test("validates ledger columns, dates, and cash receipt debit or credit values", () => {
   const missingAuditColumn = buildDat({
     headers: ["Generated Date & Time"],
