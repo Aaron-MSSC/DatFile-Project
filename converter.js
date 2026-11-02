@@ -58,6 +58,89 @@
     ["withheld", "Tax Amount"]
   ];
 
+  const LEDGER_COLUMNS = {
+    AT: {
+      datetime: ["dtime", "datetime", "generateddatetime", "dateandtime", "timestamp"],
+      userCode: ["usercode", "userid", "userlogin"],
+      username: ["username", "userloginname", "loginname"],
+      module: ["mod", "module", "modulename"],
+      action: ["act", "activity", "action", "activityperformed"],
+      reference: ["refno", "referenceno", "referencenumber"],
+      postingDate: ["postdate", "postingdate"],
+      details: ["details", "description"],
+      amount: ["amt", "amount"],
+      reportingPeriod: ["retrnperiod", "returnperiod", "reportingperiod"]
+    },
+    CRB: {
+      date: ["date", "receiptdate", "transactiondate"],
+      customer: ["custname", "customername", "customer"],
+      reference: ["refno", "referenceno", "referencenumber"],
+      journalEntry: ["jeno", "journalentryno", "journalentrynumber"],
+      details: ["details", "description"],
+      account: ["glacct", "glaccount", "glaccountcode"],
+      accountName: ["glacctname", "glaccountname", "accountname"],
+      debit: ["debit", "debitamount"],
+      credit: ["credit", "creditamount"],
+      reportingPeriod: ["retrnperiod", "returnperiod", "reportingperiod"]
+    },
+    CMJ: {
+      date: ["dtime", "date", "documentdate"],
+      tin: ["csttin", "customertin", "tin"],
+      name: ["cstname", "customername", "name"],
+      address: ["cstaddr", "customeraddress", "address"],
+      description: ["desc", "description"],
+      reference: ["refno", "referenceno", "referencenumber"],
+      amount: ["amt", "amount"],
+      discount: ["discnt", "discount"],
+      vat: ["vatamt", "vatamount"],
+      withholding: ["whtamt", "withholdingamount", "whtamount"],
+      net: ["net", "netsales", "netsalesamount"],
+      reportingPeriod: ["retrnperiod", "returnperiod", "reportingperiod"]
+    },
+    DMJ: {
+      date: ["dtime", "date", "documentdate"],
+      tin: ["vndtin", "vendortin", "suppliertin", "tin"],
+      name: ["vndname", "vendorname", "suppliername", "name"],
+      address: ["vndaddr", "vendoraddress", "supplieraddress", "address"],
+      description: ["desc", "description"],
+      reference: ["refno", "referenceno", "referencenumber"],
+      amount: ["amt", "amount"],
+      discount: ["discnt", "discount"],
+      vat: ["vatamt", "vatamount"],
+      withholding: ["whtamt", "withholdingamount", "whtamount"],
+      net: ["net", "netsales", "netsalesamount"],
+      reportingPeriod: ["retrnperiod", "returnperiod", "reportingperiod"]
+    }
+  };
+
+  const REPORT_COLUMNS = {
+    "1600VT": REQUIRED_COLUMNS.map(([field]) => field),
+    "1601EQ": REQUIRED_COLUMNS.map(([field]) => field),
+    AT: ["datetime", "userCode", "username", "module", "action", "reference", "details", "amount"],
+    CRB: ["date", "debit", "credit"],
+    CMJ: ["date", "tin", "name", "amount", "net"],
+    DMJ: ["date", "tin", "name", "amount", "net"]
+  };
+
+  const REPORT_COLUMN_LABELS = {
+    ...Object.fromEntries(REQUIRED_COLUMNS),
+    datetime: "Generated Date & Time",
+    userCode: "User Code",
+    username: "Username",
+    module: "Module",
+    action: "Activity",
+    reference: "Reference No.",
+    details: "Details",
+    amount: "Amount",
+    date: "Date",
+    debit: "Debit",
+    credit: "Credit",
+    tin: "Customer/Vendor TIN",
+    name: "Customer/Vendor Name",
+    amount: "Amount",
+    net: "Net Sales"
+  };
+
   function normalizeHeader(value) {
     return String(value ?? "")
       .normalize("NFKD")
@@ -196,11 +279,358 @@
     return digits.padStart(width, "0");
   }
 
+  function getRequiredColumns(reportType) {
+    return REPORT_COLUMNS[reportType] ?? [];
+  }
+
+  function getMissingColumns(headers, reportType) {
+    const aliases = LEDGER_COLUMNS[reportType];
+    if (aliases) {
+      const normalizedHeaders = headers.map(normalizeHeader);
+      return getRequiredColumns(reportType)
+        .filter((field) => !normalizedHeaders.some((header) => aliases[field].includes(header)))
+        .map((field) => REPORT_COLUMN_LABELS[field]);
+    }
+
+    const columns = findColumns(headers);
+    return REQUIRED_COLUMNS
+      .filter(([field]) => getRequiredColumns(reportType).includes(field) && columns[field] < 0)
+      .map(([, label]) => label);
+  }
+
+  function ledgerColumns(headers, reportType) {
+    const normalizedHeaders = headers.map(normalizeHeader);
+    return Object.fromEntries(
+      Object.entries(LEDGER_COLUMNS[reportType]).map(([field, aliases]) => [
+        field,
+        normalizedHeaders.findIndex((header) => aliases.includes(header))
+      ])
+    );
+  }
+
+  function findColumnValues(columns, values, fields) {
+    return Object.fromEntries(fields.map((field) => [
+      field,
+      columns[field] >= 0 ? values[columns[field]] : ""
+    ]));
+  }
+
+  function cleanLedgerText(value, label, rowNumber, errors, required, maxLength) {
+    const text = cleanText(value);
+    if (required && !text) {
+      errors.push(`Row ${rowNumber}: ${label} is required.`);
+    }
+    if (maxLength && text.length > maxLength) {
+      errors.push(`Row ${rowNumber}: ${label} must be ${maxLength} characters or fewer.`);
+    }
+    return text;
+  }
+
+  function parseExcelDate(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return value;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      const wholeDays = Math.floor(value);
+      const timeOfDay = Math.round((value - wholeDays) * 86400000);
+      const date = new Date(1899, 11, 30 + wholeDays);
+      date.setMilliseconds(timeOfDay);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    const text = String(value ?? "").trim();
+    const isoDateTime = /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*(?:AM|PM))?$/i.exec(text);
+    if (isoDateTime) {
+      const normalized = text.replace(/\s+/, "T");
+      const date = new Date(normalized);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i.exec(text);
+    if (match) {
+      const month = Number(match[1]);
+      const day = Number(match[2]);
+      const year = Number(match[3]);
+      let hour = Number(match[4] ?? 0);
+      const minute = Number(match[5] ?? 0);
+      const second = Number(match[6] ?? 0);
+      const meridiem = match[7]?.toUpperCase();
+
+      if (month < 1 || month > 12 || day < 1 || day > 31 || minute > 59 || second > 59) {
+        return null;
+      }
+      if (meridiem) {
+        if (hour < 1 || hour > 12) {
+          return null;
+        }
+        hour = hour % 12 + (meridiem === "PM" ? 12 : 0);
+      } else if (hour > 23) {
+        return null;
+      }
+
+      const date = new Date(year, month - 1, day, hour, minute, second);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+        ? date
+        : null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(text)) {
+      const date = new Date(text);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    return null;
+  }
+
+  function formatLedgerDate(value, label, rowNumber, errors, includeTime) {
+    const date = parseExcelDate(value);
+    if (!date) {
+      errors.push(`Row ${rowNumber}: ${label} must be a valid date${includeTime ? " and time" : ""}.`);
+      return "";
+    }
+
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const year = date.getFullYear();
+    if (!includeTime) {
+      return `${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}/${year}`;
+    }
+
+    const hours = date.getHours();
+    const meridiem = hours >= 12 ? "PM" : "AM";
+    const displayHour = hours % 12 || 12;
+    return `${month}/${day}/${year} ${displayHour}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}${meridiem}`;
+  }
+
+  function checkLedgerPeriod(value, selectedPeriod, errors, rowNumber) {
+    if (value === null || value === undefined || String(value).trim() === "") {
+      return;
+    }
+    const rowPeriod = parseSourcePeriod(value);
+    if (rowPeriod && rowPeriod !== selectedPeriod.formatted) {
+      errors.push(`Row ${rowNumber}: Reporting Period does not match the selected reporting period.`);
+    }
+  }
+
+  function buildLedgerDat({ headers, rows, rowNumbers, reportType, selectedPeriod, agentTin, agentBranch, agentRdo, agentName }) {
+    const aliases = LEDGER_COLUMNS[reportType];
+    const columns = ledgerColumns(headers, reportType);
+    const missingColumns = getMissingColumns(headers, reportType);
+    if (missingColumns.length) {
+      return {
+        errors: [`Missing required Excel columns: ${missingColumns.join(", ")}.`],
+        filename: "",
+        text: "",
+        columns,
+        missingColumns
+      };
+    }
+
+    const errors = [];
+    const detailRecords = [];
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let totalAmount = 0;
+    let totalDiscount = 0;
+    let totalVat = 0;
+    let totalWithholding = 0;
+    let totalNet = 0;
+
+    rows.forEach((row, index) => {
+      const rowNumber = rowNumbers[index] ?? index + 2;
+      const values = Array.isArray(row) ? row : [];
+      if (values.every((value) => value === null || value === undefined || String(value).trim() === "")) {
+        return;
+      }
+
+      const rowErrorsBefore = errors.length;
+      const source = findColumnValues(columns, values, Object.keys(aliases));
+      checkLedgerPeriod(source.reportingPeriod, selectedPeriod, errors, rowNumber);
+
+      if (reportType === "AT") {
+        const datetime = formatLedgerDate(source.datetime, "Generated Date & Time", rowNumber, errors, true);
+        const userCode = cleanLedgerText(source.userCode, "User Code", rowNumber, errors, true);
+        const username = cleanLedgerText(source.username, "Username", rowNumber, errors, true);
+        const module = cleanLedgerText(source.module, "Module", rowNumber, errors, true);
+        const action = cleanLedgerText(source.action, "Activity", rowNumber, errors, true);
+        const reference = cleanLedgerText(source.reference, "Reference No.", rowNumber, errors, true);
+        const postingDate = source.postingDate
+          ? formatLedgerDate(source.postingDate, "Posting Date", rowNumber, errors, false)
+          : "";
+        const particulars = cleanLedgerText(source.details, "Details", rowNumber, errors, false);
+        const amount = parseAmount(source.amount, "Amount", errors, rowNumber, false);
+
+        if (errors.length !== rowErrorsBefore) {
+          return;
+        }
+
+        detailRecords.push([
+          "D",
+          "AT",
+          datetime,
+          userCode,
+          username,
+          module,
+          action,
+          reference,
+          postingDate,
+          particulars,
+          formatCents(amount),
+          selectedPeriod.formatted
+        ]);
+        totalAmount += amount;
+      } else if (reportType === "CRB") {
+        const date = formatLedgerDate(source.date, "Date", rowNumber, errors, false);
+        const customer = cleanLedgerText(source.customer, "Customer Name", rowNumber, errors, false);
+        const reference = cleanLedgerText(source.reference, "Reference No.", rowNumber, errors, false);
+        const journalEntry = cleanLedgerText(source.journalEntry, "Journal Entry No.", rowNumber, errors, false);
+        const particulars = cleanLedgerText(source.details, "Details", rowNumber, errors, false);
+        const account = cleanLedgerText(source.account, "GL Account", rowNumber, errors, false);
+        const accountName = cleanLedgerText(source.accountName, "GL Account Name", rowNumber, errors, false);
+        const debit = parseAmount(source.debit, "Debit", errors, rowNumber, false);
+        const credit = parseAmount(source.credit, "Credit", errors, rowNumber, false);
+
+        if (debit === 0 && credit === 0) {
+          errors.push(`Row ${rowNumber}: Enter a debit or credit amount.`);
+        }
+
+        if (errors.length !== rowErrorsBefore) {
+          return;
+        }
+
+        detailRecords.push([
+          "D",
+          "DCRB",
+          date,
+          customer,
+          reference,
+          journalEntry,
+          particulars,
+          account,
+          accountName,
+          formatCents(debit),
+          formatCents(credit),
+          selectedPeriod.formatted
+        ]);
+        totalDebit += debit;
+        totalCredit += credit;
+      } else {
+        const date = formatLedgerDate(source.date, "Date", rowNumber, errors, false);
+        const partyLabel = reportType === "CMJ" ? "Customer" : "Vendor";
+        const tin = normalizeTin(source.tin, `${partyLabel} TIN`, errors, rowNumber);
+        const name = cleanLedgerText(source.name, `${partyLabel} Name`, rowNumber, errors, true, 50);
+        const address = cleanLedgerText(source.address, `${partyLabel} Address`, rowNumber, errors, false);
+        const description = cleanLedgerText(source.description, "Description", rowNumber, errors, false);
+        const reference = cleanLedgerText(source.reference, "Reference No.", rowNumber, errors, false);
+        const amount = parseAmount(source.amount, "Amount", errors, rowNumber, false);
+        const discount = parseAmount(source.discount, "Discount", errors, rowNumber, false);
+        const vat = parseAmount(source.vat, "VAT Amount", errors, rowNumber, false);
+        const withholding = parseAmount(source.withholding, "Withholding Amount", errors, rowNumber, false);
+        const net = parseAmount(source.net, "Net Sales", errors, rowNumber, false);
+
+        if (errors.length !== rowErrorsBefore) {
+          return;
+        }
+
+        detailRecords.push([
+          "D",
+          reportType === "CMJ" ? "DCMJ" : "DDMJ",
+          date,
+          tin,
+          name,
+          address,
+          description,
+          reference,
+          formatCents(amount),
+          formatCents(discount),
+          formatCents(vat),
+          formatCents(withholding),
+          formatCents(net),
+          selectedPeriod.formatted
+        ]);
+        totalAmount += amount;
+        totalDiscount += discount;
+        totalVat += vat;
+        totalWithholding += withholding;
+        totalNet += net;
+      }
+    });
+
+    if (!detailRecords.length) {
+      errors.push("No valid detail rows were found in the selected worksheet.");
+    }
+    if ([totalDebit, totalCredit, totalAmount, totalDiscount, totalVat, totalWithholding, totalNet]
+      .some((total) => total > 9999999999999)) {
+      errors.push("The report total exceeds the documented 11-digit amount limit.");
+    }
+    if (errors.length) {
+      return { errors, filename: "", text: "", columns, missingColumns };
+    }
+
+    const formCode = {
+      AT: "HAT",
+      CRB: "HCRB",
+      CMJ: "HCMJ",
+      DMJ: "HDMJ"
+    }[reportType];
+    const header = ["H", formCode, agentTin, agentBranch, agentName, selectedPeriod.formatted, agentRdo];
+    const records = [header, ...detailRecords];
+    const recordLabel = detailRecords.length === 1 ? "record" : "records";
+    let summary;
+
+    if (reportType === "CRB") {
+      records.push([
+        "C",
+        "CCRB",
+        agentTin,
+        agentBranch,
+        selectedPeriod.formatted,
+        formatCents(totalDebit),
+        formatCents(totalCredit)
+      ]);
+      summary = `${detailRecords.length} detail ${recordLabel} · Total debit ${formatCents(totalDebit)} · Total credit ${formatCents(totalCredit)}`;
+    } else if (reportType === "CMJ" || reportType === "DMJ") {
+      const memoCode = reportType === "CMJ" ? "CMJ" : "DMJ";
+      records.push([
+        "C",
+        `C${memoCode}`,
+        agentTin,
+        agentBranch,
+        selectedPeriod.formatted,
+        formatCents(totalAmount),
+        formatCents(totalDiscount),
+        formatCents(totalVat),
+        formatCents(totalWithholding),
+        formatCents(totalNet)
+      ]);
+      summary = `${detailRecords.length} detail ${recordLabel} · Total net sales ${formatCents(totalNet)}`;
+    } else {
+      summary = `${detailRecords.length} audit trail ${recordLabel} · Total amount ${formatCents(totalAmount)}`;
+    }
+
+    return {
+      errors: [],
+      text: records.map((record) => record.join(",")).join("\r\n"),
+      filename: `${agentTin}${agentBranch}${selectedPeriod.filename}${reportType}.DAT`,
+      columns,
+      detailCount: detailRecords.length,
+      totalDebit: formatCents(totalDebit),
+      totalCredit: formatCents(totalCredit),
+      totalAmount: formatCents(totalAmount),
+      totalDiscount: formatCents(totalDiscount),
+      totalVat: formatCents(totalVat),
+      totalWithholding: formatCents(totalWithholding),
+      totalNet: formatCents(totalNet),
+      summary
+    };
+  }
+
   function buildDat({ headers, rows, rowNumbers = [], reportType, period, agent }) {
     const errors = [];
     const report = REPORTS[reportType];
 
-    if (!report) {
+    if (!report && !LEDGER_COLUMNS[reportType]) {
       return { errors: ["Choose a supported reporting type."], filename: "", text: "" };
     }
 
@@ -213,6 +643,24 @@
     const agentBranch = fixedDigits(agent?.branch, "Withholding agent branch code", 4, errors);
     const agentRdo = fixedDigits(agent?.rdo, "Withholding agent RDO code", 3, errors);
     const agentName = metadataValue(agent?.name, "Withholding agent registered name", 50, errors);
+
+    if (LEDGER_COLUMNS[reportType]) {
+      if (errors.length) {
+        return { errors, filename: "", text: "" };
+      }
+
+      return buildLedgerDat({
+        headers,
+        rows,
+        rowNumbers,
+        reportType,
+        selectedPeriod,
+        agentTin,
+        agentBranch,
+        agentRdo,
+        agentName
+      });
+    }
 
     const columns = findColumns(headers);
     const missingColumns = REQUIRED_COLUMNS
@@ -373,6 +821,7 @@
       detailCount: detailRows.length,
       totalIncome: formatCents(totalIncome),
       totalWithheld: formatCents(totalWithheld),
+      summary: `${detailRows.length} detail ${detailRows.length === 1 ? "record" : "records"} · Total income ${formatCents(totalIncome)} · Total tax withheld ${formatCents(totalWithheld)}`,
       reportTitle: report.title
     };
   }
@@ -411,6 +860,8 @@
     buildDat,
     cleanText,
     findColumns,
+    getMissingColumns,
+    getRequiredColumns,
     normalizeHeader,
     parsePeriod
   };

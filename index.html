@@ -62,13 +62,17 @@
               <select id="report-type" required>
                 <option value="1600VT">1600VT — Monthly Alphalist of Payees (MAP)</option>
                 <option value="1601EQ">1601EQ — Quarterly Alphalist of Payees (QAP)</option>
+                <option value="AT">AT — Audit Trail</option>
+                <option value="CRB">CRB — Cash Receipt Book</option>
+                <option value="CMJ">CMJ — Credit Memo Journal</option>
+                <option value="DMJ">DMJ — Debit Memo Journal</option>
               </select>
               <span class="field-hint">Only use the type that matches the selected workbook.</span>
             </div>
             <div class="field">
-              <label for="reporting-period">Reporting period</label>
+              <label for="reporting-period">Return period</label>
               <input id="reporting-period" type="month" required>
-              <span class="field-hint">Written to the DAT record as MM/YYYY.</span>
+              <span class="field-hint">Written to the DAT records as MM/YYYY.</span>
             </div>
           </div>
         </section>

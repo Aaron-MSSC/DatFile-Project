@@ -63,7 +63,13 @@
   });
 
   form.addEventListener("input", handleFormChange);
-  form.addEventListener("change", handleFormChange);
+  form.addEventListener("change", (event) => {
+    if (event.target === reportType) {
+      renderWorksheet();
+    } else {
+      handleFormChange();
+    }
+  });
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     convertWorkbook();
@@ -219,24 +225,12 @@
     previewTable.append(body);
     previewSummary.textContent = `${source.sheetName} · ${visibleRows.length}${visibleRows.length === 5 ? "+" : ""} sample rows shown`;
 
-    const columnMap = DatConverter.findColumns(source.headers);
-    const missing = [
-      ["tin", "Vendor TIN"],
-      ["branch", "Branch Code"],
-      ["registeredName", "Company Name"],
-      ["lastName", "Last Name"],
-      ["firstName", "First Name"],
-      ["middleName", "Middle Name"],
-      ["atc", "ATC"],
-      ["income", "Income Payment"],
-      ["rate", "Tax Rate"],
-      ["withheld", "Tax Amount"]
-    ].filter(([field]) => columnMap[field] < 0).map(([, label]) => label);
+    const missing = DatConverter.getMissingColumns(source.headers, reportType.value);
 
     columnStatus.classList.toggle("is-error", missing.length > 0);
     columnStatus.textContent = missing.length
-      ? `Required columns not found: ${missing.join(", ")}. Use the documented Excel column headings.`
-      : "Required payee columns found. You can now create the DAT file.";
+      ? `Required columns not found: ${missing.join(", ")}. Use the column headings for the selected report.`
+      : "Required columns found. You can now create the DAT file.";
     previewCard.classList.remove("hidden");
     updateReadyState();
   }
@@ -245,10 +239,8 @@
     const hasSource = Boolean(selectedFile && source && source.headers.length);
     const isComplete = Object.values(agentInputs).every((input) => input.value.trim()) &&
       periodInput.value;
-    const requiredColumnsPresent = hasSource && [
-      "tin", "branch", "registeredName", "lastName", "firstName",
-      "middleName", "atc", "income", "rate", "withheld"
-    ].every((field) => DatConverter.findColumns(source.headers)[field] >= 0);
+    const requiredColumnsPresent = hasSource &&
+      DatConverter.getMissingColumns(source.headers, reportType.value).length === 0;
 
     convertButton.disabled = !(hasSource && isComplete && requiredColumnsPresent);
   }
@@ -289,7 +281,7 @@
     downloadResult.href = outputUrl;
     downloadResult.download = result.filename;
 
-    resultSummary.textContent = `${result.detailCount} detail records · Total income ${result.totalIncome} · Total tax withheld ${result.totalWithheld}`;
+    resultSummary.textContent = result.summary;
     resultFilename.textContent = result.filename;
     resultCard.classList.remove("hidden");
     downloadResult.click();
