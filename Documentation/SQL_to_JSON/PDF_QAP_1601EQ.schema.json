@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PDF_QAP_1601EQ documented export layout",
+  "description": "Proposed JSON envelope for PDF tabular layout; JSON is not the documented submission format.",
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "ALPHA_TYPE": {
+          "const": "HQAP"
+        },
+        "FTYPE_CODE": {
+          "const": "H1601EQ"
+        },
+        "TIN_WA": {
+          "type": "string",
+          "pattern": "^[0-9]{9}$"
+        },
+        "BRANCH_CODE_WA": {
+          "type": "string",
+          "pattern": "^[0-9]{4}$"
+        },
+        "REGISTERED_NAME_WA": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "RETRN_PERIOD": {
+          "type": "string",
+          "pattern": "^(0[1-9]|1[0-2])/[0-9]{4}$"
+        },
+        "RDO_CODE_WA": {
+          "type": "string",
+          "pattern": "^[0-9]{3}$"
+        }
+      },
+      "required": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_WA",
+        "BRANCH_CODE_WA",
+        "REGISTERED_NAME_WA",
+        "RETRN_PERIOD",
+        "RDO_CODE_WA"
+      ],
+      "additionalProperties": false,
+      "x-column-order": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_WA",
+        "BRANCH_CODE_WA",
+        "REGISTERED_NAME_WA",
+        "RETRN_PERIOD",
+        "RDO_CODE_WA"
+      ]
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "SCHEDULE_NUM": {
+            "const": "D1"
+          },
+          "FTYPE_CODE": {
+            "const": "1601EQ"
+          },
+          "SEQ_NUM": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 99999999
+          },
+          "TIN_PAYEE": {
+            "type": "string",
+            "pattern": "^[0-9]{9}$"
+          },
+          "BRANCH_CODE_PAYEE": {
+            "type": "string",
+            "pattern": "^[0-9]{4}$"
+          },
+          "REGISTERED_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "LAST_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "FIRST_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "MIDDLE_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "RETRN_PERIOD": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-2])/[0-9]{4}$"
+          },
+          "ATC_CODE": {
+            "type": "string",
+            "maxLength": 5
+          },
+          "TAX_RATE": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "INCOME_PAYMENT": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "ACTUAL_AMT_WTHLD": {
+            "type": "number",
+            "multipleOf": 0.01
+          }
+        },
+        "required": [
+          "SCHEDULE_NUM",
+          "FTYPE_CODE",
+          "SEQ_NUM",
+          "TIN_PAYEE",
+          "BRANCH_CODE_PAYEE",
+          "REGISTERED_NAME_PAYEE",
+          "LAST_NAME_PAYEE",
+          "FIRST_NAME_PAYEE",
+          "MIDDLE_NAME_PAYEE",
+          "RETRN_PERIOD",
+          "ATC_CODE",
+          "TAX_RATE",
+          "INCOME_PAYMENT",
+          "ACTUAL_AMT_WTHLD"
+        ],
+        "additionalProperties": false,
+        "x-column-order": [
+          "SCHEDULE_NUM",
+          "FTYPE_CODE",
+          "SEQ_NUM",
+          "TIN_PAYEE",
+          "BRANCH_CODE_PAYEE",
+          "REGISTERED_NAME_PAYEE",
+          "LAST_NAME_PAYEE",
+          "FIRST_NAME_PAYEE",
+          "MIDDLE_NAME_PAYEE",
+          "RETRN_PERIOD",
+          "ATC_CODE",
+          "TAX_RATE",
+          "INCOME_PAYMENT",
+          "ACTUAL_AMT_WTHLD"
+        ]
+      }
+    },
+    "control": {
+      "type": "object",
+      "properties": {
+        "ALPHA_TYPE": {
+          "const": "C1"
+        },
+        "FTYPE_CODE": {
+          "const": "1601EQ"
+        },
+        "TIN_WA": {
+          "type": "string",
+          "pattern": "^[0-9]{9}$"
+        },
+        "BRANCH_CODE_WA": {
+          "type": "string",
+          "pattern": "^[0-9]{4}$"
+        },
+        "RETRN_PERIOD": {
+          "type": "string",
+          "pattern": "^(0[1-9]|1[0-2])/[0-9]{4}$"
+        },
+        "INCOME_PAYMENT": {
+          "type": "number",
+          "multipleOf": 0.01
+        },
+        "ACTUAL_AMT_WTHLD": {
+          "type": "number",
+          "multipleOf": 0.01
+        }
+      },
+      "required": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_WA",
+        "BRANCH_CODE_WA",
+        "RETRN_PERIOD",
+        "INCOME_PAYMENT",
+        "ACTUAL_AMT_WTHLD"
+      ],
+      "additionalProperties": false,
+      "x-column-order": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_WA",
+        "BRANCH_CODE_WA",
+        "RETRN_PERIOD",
+        "INCOME_PAYMENT",
+        "ACTUAL_AMT_WTHLD"
+      ]
+    }
+  },
+  "required": [
+    "header",
+    "details",
+    "control"
+  ],
+  "additionalProperties": false
+}

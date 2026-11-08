@@ -1,0 +1,427 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "2550M SQL result JSON",
+  "description": "Application contract inferred from uploaded SQL, not an official BIR JSON specification. Nullable SQL values are retained. Each row preserves source grain.",
+  "type": "object",
+  "properties": {
+    "formType": {
+      "const": "2550M"
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column Type; SQL type inferred from source expression, verify against database metadata."
+          },
+          "tbl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column tbl; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coname; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxidnum": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column taxidnum; SQL type inferred from source expression, verify against database metadata."
+          },
+          "cophone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column cophone; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coemail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coemail; SQL type inferred from source expression, verify against database metadata."
+          },
+          "rdo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column rdo; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coaddr1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coaddr1; SQL type inferred from source expression, verify against database metadata."
+          },
+          "businessline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column businessline; SQL type inferred from source expression, verify against database metadata."
+          },
+          "cozip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column cozip; SQL type inferred from source expression, verify against database metadata."
+          },
+          "addr1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column addr1; SQL type inferred from source expression, verify against database metadata."
+          },
+          "docyear": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column docyear; SQL type inferred from source expression, verify against database metadata."
+          },
+          "docmonth": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column docmonth; SQL type inferred from source expression, verify against database metadata."
+          },
+          "LineTotal": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column LineTotal; SQL type inferred from source expression, verify against database metadata."
+          },
+          "VatSum": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column VatSum; SQL type inferred from source expression, verify against database metadata."
+          },
+          "idvend": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column idvend; SQL type inferred from source expression, verify against database metadata."
+          },
+          "vendname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column vendname; SQL type inferred from source expression, verify against database metadata."
+          },
+          "vendzip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column vendzip; SQL type inferred from source expression, verify against database metadata."
+          },
+          "tin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column tin; SQL type inferred from source expression, verify against database metadata."
+          },
+          "CmpPrivate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column CmpPrivate; SQL type inferred from source expression, verify against database metadata."
+          },
+          "Actual_VatGroup": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column Actual_VatGroup; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-NG": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-NG; SQL type inferred from source expression, verify against database metadata."
+          },
+          "total IVAT-NG": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column total IVAT-NG; SQL type inferred from source expression, verify against database metadata."
+          },
+          "Amount_Of_Purchase_Of_Capital_Goods": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column Amount_Of_Purchase_Of_Capital_Goods; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-CN": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-CN; SQL type inferred from source expression, verify against database metadata."
+          },
+          "Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-O": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-O; SQL type inferred from source expression, verify against database metadata."
+          },
+          "TOTAL IVAT-I": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column TOTAL IVAT-I; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-I": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-I; SQL type inferred from source expression, verify against database metadata."
+          },
+          "TOTAL IVAT-S": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column TOTAL IVAT-S; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-S": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-S; SQL type inferred from source expression, verify against database metadata."
+          },
+          "TOTAL IVAT-EZ": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column TOTAL IVAT-EZ; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-SGNO": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-SGNO; SQL type inferred from source expression, verify against database metadata."
+          },
+          "IVAT-EN0": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column IVAT-EN0; SQL type inferred from source expression, verify against database metadata."
+          },
+          "OVAT-NG": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column OVAT-NG; SQL type inferred from source expression, verify against database metadata."
+          },
+          "OVAT-G": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column OVAT-G; SQL type inferred from source expression, verify against database metadata."
+          },
+          "total OVAT-NG": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column total OVAT-NG; SQL type inferred from source expression, verify against database metadata."
+          },
+          "total OVAT-G": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column total OVAT-G; SQL type inferred from source expression, verify against database metadata."
+          },
+          "total OVAT-E": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column total OVAT-E; SQL type inferred from source expression, verify against database metadata."
+          },
+          "total OVAT-Z": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column total OVAT-Z; SQL type inferred from source expression, verify against database metadata."
+          },
+          "InputVAT": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column InputVAT; SQL type inferred from source expression, verify against database metadata."
+          },
+          "WTAmnt": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column WTAmnt; SQL type inferred from source expression, verify against database metadata."
+          },
+          "DocEntry": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column DocEntry; SQL type inferred from source expression, verify against database metadata."
+          },
+          "DocNum": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column DocNum; SQL type inferred from source expression, verify against database metadata."
+          },
+          "DocDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column DocDate; SQL type inferred from source expression, verify against database metadata. Serialize as ISO 8601 date-time."
+          },
+          "DocTotal": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column DocTotal; SQL type inferred from source expression, verify against database metadata."
+          },
+          "VatDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column VatDate; SQL type inferred from source expression, verify against database metadata. Serialize as ISO 8601 date-time."
+          },
+          "GTotal": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column GTotal; SQL type inferred from source expression, verify against database metadata."
+          },
+          "VatGroup": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column VatGroup; SQL type inferred from source expression, verify against database metadata."
+          },
+          "Code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column Code; SQL type inferred from source expression, verify against database metadata."
+          }
+        },
+        "required": [
+          "Type",
+          "tbl",
+          "coname",
+          "taxidnum",
+          "cophone",
+          "coemail",
+          "rdo",
+          "coaddr1",
+          "businessline",
+          "cozip",
+          "addr1",
+          "docyear",
+          "docmonth",
+          "LineTotal",
+          "VatSum",
+          "idvend",
+          "vendname",
+          "vendzip",
+          "tin",
+          "CmpPrivate",
+          "Actual_VatGroup",
+          "IVAT-NG",
+          "total IVAT-NG",
+          "Amount_Of_Purchase_Of_Capital_Goods",
+          "IVAT-CN",
+          "Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods",
+          "IVAT-O",
+          "TOTAL IVAT-I",
+          "IVAT-I",
+          "TOTAL IVAT-S",
+          "IVAT-S",
+          "TOTAL IVAT-EZ",
+          "IVAT-SGNO",
+          "IVAT-EN0",
+          "OVAT-NG",
+          "OVAT-G",
+          "total OVAT-NG",
+          "total OVAT-G",
+          "total OVAT-E",
+          "total OVAT-Z",
+          "InputVAT",
+          "WTAmnt",
+          "DocEntry",
+          "DocNum",
+          "DocDate",
+          "DocTotal",
+          "VatDate",
+          "GTotal",
+          "VatGroup",
+          "Code"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "formType",
+    "details"
+  ],
+  "additionalProperties": false
+}

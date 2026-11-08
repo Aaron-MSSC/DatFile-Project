@@ -7,6 +7,7 @@
     <title>Excel to DAT Converter</title>
     <link rel="stylesheet" href="/styles.css">
     <script defer src="/vendor/xlsx.full.min.js"></script>
+    <script defer src="/auth-client.js"></script>
     <script defer src="/converter.js"></script>
     <script defer src="/app.js"></script>
   </head>
@@ -16,10 +17,49 @@
         <span class="brand-mark" aria-hidden="true">D</span>
         <span>DAT Converter</span>
       </a>
-      <span class="privacy-note"><span class="privacy-dot"></span> Files stay on this device</span>
+      <div class="topbar-account">
+        <span id="account-status" class="privacy-note"><span class="privacy-dot"></span> Files stay on this device</span>
+        <button id="logout-button" class="text-button hidden" type="button">Sign out</button>
+      </div>
     </header>
 
     <main class="page-shell">
+      <section id="auth-view" class="auth-card" aria-labelledby="auth-title">
+        <p class="eyebrow">DAT CONVERTER ACCOUNT</p>
+        <h1 id="auth-title">Welcome</h1>
+        <p class="intro-copy">Sign in to continue, or create an account to get started.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Account action">
+          <button class="auth-tab is-active" type="button" role="tab" aria-selected="true" data-auth-mode="login">Sign in</button>
+          <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="register">Create account</button>
+        </div>
+        <form id="auth-form" novalidate>
+          <div id="account-name-field" class="field auth-field hidden">
+            <label for="account-name">Name</label>
+            <input id="account-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+          </div>
+          <div class="field auth-field">
+            <label for="account-email">Email</label>
+            <input id="account-email" type="email" maxlength="254" autocomplete="email" required placeholder="you@example.com">
+          </div>
+          <div class="field auth-field">
+            <label for="account-password">Password</label>
+            <input id="account-password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required>
+            <span class="field-hint">Use at least 12 characters.</span>
+          </div>
+          <div id="confirm-password-field" class="field auth-field hidden">
+            <label for="confirm-password">Confirm password</label>
+            <input id="confirm-password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+          </div>
+          <label class="show-password-control">
+            <input id="show-password" type="checkbox">
+            <span>Show password</span>
+          </label>
+          <div id="auth-error" class="error-message hidden" role="alert"></div>
+          <button id="auth-submit" class="primary-button auth-submit" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <div id="converter-view" class="hidden">
       <section class="intro">
         <p class="eyebrow">BIR ALPHALIST EXPORT</p>
         <h1>Excel to DAT</h1>
@@ -27,9 +67,175 @@
       </section>
 
       <form id="converter-form" novalidate>
-        <section class="card upload-card" aria-labelledby="upload-title">
+        <nav class="wizard-tracker" aria-label="Conversion progress">
+          <ol id="wizard-steps">
+            <li class="wizard-step is-current" data-wizard-indicator="1">
+              <span class="wizard-step-number">1</span>
+              <span class="wizard-step-label">Select report</span>
+            </li>
+            <li class="wizard-step" data-wizard-indicator="2">
+              <span class="wizard-step-number">2</span>
+              <span class="wizard-step-label">Upload Excel</span>
+            </li>
+            <li class="wizard-step" data-wizard-indicator="3">
+              <span class="wizard-step-number">3</span>
+              <span class="wizard-step-label">Report period</span>
+            </li>
+            <li class="wizard-step" data-wizard-indicator="4">
+              <span class="wizard-step-number">4</span>
+              <span class="wizard-step-label">Agent details</span>
+            </li>
+            <li class="wizard-step" data-wizard-indicator="5">
+              <span class="wizard-step-number">5</span>
+              <span class="wizard-step-label">Preview &amp; download</span>
+            </li>
+          </ol>
+        </nav>
+
+        <section class="card wizard-stage" data-wizard-stage="1" aria-labelledby="report-title">
           <div class="section-heading">
             <span class="step-number">01</span>
+            <div>
+              <h2 id="report-title">Select BIR report / module</h2>
+              <p>Choose the report that matches your Excel data.</p>
+            </div>
+          </div>
+          <input id="report-type" type="hidden" value="">
+          <fieldset class="report-category">
+            <legend>Withholding Tax</legend>
+            <div class="report-card-grid">
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="1600VT">
+                <span class="report-option-content">
+                  <span class="report-code">1600VT · MAP</span>
+                  <strong>Monthly Alphalist of Payees</strong>
+                  <span class="report-form">BIR Form 1601-E</span>
+                  <span class="report-description">Monthly report of payees subject to expanded withholding tax.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="1601EQ">
+                <span class="report-option-content">
+                  <span class="report-code">1601EQ · QAP</span>
+                  <strong>Quarterly Alphalist of Payees</strong>
+                  <span class="report-form">BIR Form 1601-EQ</span>
+                  <span class="report-description">Quarterly summary of payees and withholding tax details.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="report-category">
+            <legend>Books of Accounts</legend>
+            <div class="report-card-grid">
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="AT">
+                <span class="report-option-content">
+                  <span class="report-code">AT</span>
+                  <strong>Audit Trail</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">User activities, references, and transaction amounts.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="CRB">
+                <span class="report-option-content">
+                  <span class="report-code">CRB</span>
+                  <strong>Cash Receipt Book</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Cash receipts with debit and credit entries.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="DJ">
+                <span class="report-option-content">
+                  <span class="report-code">DJ</span>
+                  <strong>Disbursement Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Supplier disbursements, checks, and account entries.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="CMJ">
+                <span class="report-option-content">
+                  <span class="report-code">CMJ</span>
+                  <strong>Credit Memo Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Customer credit memos and sales adjustments.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="DMJ">
+                <span class="report-option-content">
+                  <span class="report-code">DMJ</span>
+                  <strong>Debit Memo Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Vendor debit memos and purchase adjustments.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="GJ">
+                <span class="report-option-content">
+                  <span class="report-code">GJ</span>
+                  <strong>General Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Journal entries with references, accounts, debits, and credits.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="GL">
+                <span class="report-option-content">
+                  <span class="report-code">GL</span>
+                  <strong>General Ledger</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Account ledger movements and running balances.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="IJ">
+                <span class="report-option-content">
+                  <span class="report-code">IJ</span>
+                  <strong>Inventory Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Inventory movements, quantities, and item totals.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="PJ">
+                <span class="report-option-content">
+                  <span class="report-code">PJ</span>
+                  <strong>Purchase Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Vendor purchases with VAT breakdown and totals.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="SJ">
+                <span class="report-option-content">
+                  <span class="report-code">SJ</span>
+                  <strong>Sales Journal</strong>
+                  <span class="report-form">Books of Accounts</span>
+                  <span class="report-description">Customer sales with VAT breakdown and totals.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
+          </fieldset>
+        </section>
+
+        <section class="card upload-card wizard-stage hidden" data-wizard-stage="2" aria-labelledby="upload-title">
+          <div class="section-heading">
+            <span class="step-number">02</span>
             <div>
               <h2 id="upload-title">Choose an Excel workbook</h2>
               <p>Use an <strong>.xlsx</strong> file. Legacy .xls files are not supported.</p>
@@ -48,48 +254,24 @@
           </div>
         </section>
 
-        <section class="card" aria-labelledby="report-title">
+        <section class="card wizard-stage hidden" data-wizard-stage="3" aria-labelledby="period-title">
           <div class="section-heading">
-            <span class="step-number">02</span>
+            <span class="step-number">03</span>
             <div>
-              <h2 id="report-title">Report details</h2>
-              <p>Select the format and reporting month for this workbook.</p>
+              <h2 id="period-title">Report period</h2>
+              <p>Select the reporting month for this workbook.</p>
             </div>
           </div>
-          <div class="form-grid">
-            <div class="field">
-              <label for="report-type">Reporting type</label>
-              <select id="report-type" required>
-                <optgroup label="Withholding Tax">
-                  <option value="1600VT">1600VT — Monthly Alphalist of Payees (MAP)</option>
-                  <option value="1601EQ">1601EQ — Quarterly Alphalist of Payees (QAP)</option>
-                </optgroup>
-                <optgroup label="Books of Accounts">
-                  <option value="AT">AT — Audit Trail</option>
-                  <option value="CRB">CRB — Cash Receipt Book</option>
-                  <option value="DJ">DJ — Disbursement Journal</option>
-                  <option value="CMJ">CMJ — Credit Memo Journal</option>
-                  <option value="DMJ">DMJ — Debit Memo Journal</option>
-                  <option value="GJ">GJ — General Journal</option>
-                  <option value="GL">GL — General Ledger</option>
-                  <option value="IJ">IJ — Inventory Journal</option>
-                  <option value="PJ">PJ — Purchase Journal</option>
-                  <option value="SJ">SJ — Sales Journal</option>
-                </optgroup>
-              </select>
-              <span class="field-hint">Only use the type that matches the selected workbook.</span>
-            </div>
-            <div class="field">
-              <label for="reporting-period">Return period</label>
-              <input id="reporting-period" type="month" required>
-              <span class="field-hint">Written to the DAT records as MM/YYYY.</span>
-            </div>
+          <div class="field">
+            <label for="reporting-period">Return period</label>
+            <input id="reporting-period" type="month" required>
+            <span class="field-hint">Written to the DAT records as MM/YYYY.</span>
           </div>
         </section>
 
-        <section class="card" aria-labelledby="agent-title">
+        <section class="card wizard-stage hidden" data-wizard-stage="4" aria-labelledby="agent-title">
           <div class="section-heading">
-            <span class="step-number">03</span>
+            <span class="step-number">04</span>
             <div>
               <h2 id="agent-title">Withholding agent</h2>
               <p>These details are written to the file header and output filename.</p>
@@ -115,9 +297,9 @@
           </div>
         </section>
 
-        <section id="preview-card" class="card preview-card hidden" aria-labelledby="preview-title">
+        <section id="preview-card" class="card preview-card wizard-stage hidden" data-wizard-stage="5" aria-labelledby="preview-title">
           <div class="section-heading preview-heading">
-            <span class="step-number">04</span>
+            <span class="step-number">05</span>
             <div>
               <h2 id="preview-title">Source data preview</h2>
               <p id="preview-summary">Review the worksheet before creating the DAT file.</p>
@@ -140,11 +322,19 @@
         </section>
 
         <div id="error-message" class="error-message hidden" role="alert"></div>
-        <div class="actions">
-          <button id="convert-button" class="primary-button" type="submit" disabled>
-            <span>Convert and download</span>
-            <span aria-hidden="true">→</span>
-          </button>
+        <div class="wizard-actions">
+          <span id="wizard-progress" class="wizard-progress" aria-live="polite">Step 1 of 4</span>
+          <div class="wizard-action-buttons">
+            <button id="back-button" class="secondary-button hidden" type="button">Back</button>
+            <button id="next-button" class="primary-button" type="button" disabled>
+              <span>Next</span>
+              <span aria-hidden="true">→</span>
+            </button>
+            <button id="convert-button" class="primary-button hidden" type="submit" disabled>
+              <span>Convert and download</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
         </div>
       </form>
 
@@ -152,6 +342,7 @@
         <p>Conversion runs in your browser. The workbook is not uploaded to a server.</p>
         <p>DAT format: comma-delimited header, detail, and control records.</p>
       </footer>
+      </div>
     </main>
   </body>
 </html>

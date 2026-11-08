@@ -64,8 +64,8 @@
       userCode: ["usercode", "userid", "userlogin"],
       username: ["username", "userloginname", "loginname"],
       module: ["mod", "module", "modulename"],
-      action: ["act", "activity", "action", "activityperformed"],
-      reference: ["refno", "referenceno", "referencenumber"],
+      action: ["act", "activity", "action", "activityperform", "activityperformed"],
+      reference: ["refno", "refnumber", "referenceno", "referencenumber"],
       postingDate: ["postdate", "postingdate"],
       details: ["details", "description"],
       amount: ["amt", "amount"],
@@ -344,7 +344,7 @@
     return normalized.padStart(9, "0");
   }
 
-  function parseAmount(value, label, errors, rowNumber, required) {
+  function parseAmount(value, label, errors, rowNumber, required, allowNegative = false) {
     if (value === null || value === undefined || String(value).trim() === "") {
       if (required) {
         errors.push(`Row ${rowNumber}: ${label} is required.`);
@@ -358,12 +358,12 @@
       ? value
       : Number(String(value).replace(/[,\s₱$]/g, "").replace(/^P(?=\d)/i, ""));
 
-    if (!Number.isFinite(cleaned) || cleaned < 0) {
-      errors.push(`Row ${rowNumber}: ${label} must be a non-negative number.`);
+    if (!Number.isFinite(cleaned) || (!allowNegative && cleaned < 0)) {
+      errors.push(`Row ${rowNumber}: ${label} must be ${allowNegative ? "a number" : "a non-negative number"}.`);
       return null;
     }
 
-    const cents = Math.round((cleaned + Number.EPSILON) * 100);
+    const cents = Math.sign(cleaned) * Math.round((Math.abs(cleaned) + Number.EPSILON) * 100);
     if (!Number.isSafeInteger(cents) || cents > 9999999999999) {
       errors.push(`Row ${rowNumber}: ${label} exceeds the documented 11-digit amount limit.`);
       return null;
@@ -495,8 +495,11 @@
 
     const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?$/i.exec(text);
     if (match) {
-      const month = Number(match[1]);
-      const day = Number(match[2]);
+      const firstPart = Number(match[1]);
+      const secondPart = Number(match[2]);
+      const dayFirst = firstPart > 12;
+      const month = dayFirst ? secondPart : firstPart;
+      const day = dayFirst ? firstPart : secondPart;
       const year = Number(match[3]);
       let hour = Number(match[4] ?? 0);
       const minute = Number(match[5] ?? 0);
@@ -611,7 +614,7 @@
           ? formatLedgerDate(source.postingDate, "Posting Date", rowNumber, errors, false)
           : "";
         const particulars = cleanLedgerText(source.details, "Details", rowNumber, errors, false);
-        const amount = parseAmount(source.amount, "Amount", errors, rowNumber, false);
+        const amount = parseAmount(source.amount, "Amount", errors, rowNumber, false, true);
 
         if (errors.length !== rowErrorsBefore) {
           return;

@@ -9,7 +9,17 @@ A browser-based converter for the BIR DAT formats documented in `Documentation/D
 3. Run `npm start`.
 4. Open `http://127.0.0.1:3000`.
 
+## Accounts
+
+Create an account with your name, email address, and a password of at least 12 characters, then sign in to use the converter. Account records are stored in `data/users.json` with scrypt password hashes; the `data` directory is excluded from Git. Sign-in sessions expire after 8 hours and are cleared when the server restarts. Set `DAT_AUTH_FILE` to choose another account-file location.
+
+The included server binds to localhost. If you expose it beyond your machine, use HTTPS and a production-ready persistent session store.
+
 The app reads `.xlsx` workbooks in the browser. Workbook contents are not uploaded or sent to a server.
+
+## Excel workbook requirements
+
+Upload an `.xlsx` workbook in data-only form: use one header row followed by the report data rows. Do not include report titles, summaries, subtotals, or other non-data rows in the worksheet. Cell formatting is fine; the converter reads cell values. The first non-empty row is treated as the header row, so make sure it contains the column names expected for the selected report.
 
 ## Supported report types
 
@@ -61,4 +71,4 @@ The generated `.DAT` file is comma-delimited and contains the report's documente
 
 ## Tests
 
-Run `npm test` for conversion-format and validation tests.
+Run `npm test` for conversion-format, validation, and account-flow tests.

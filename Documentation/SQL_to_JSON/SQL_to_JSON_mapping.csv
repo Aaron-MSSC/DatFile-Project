@@ -1,0 +1,183 @@
+form,SQL file,SQL output column,JSON path,inferred JSON type (nullable),rule
+0619F,0619-F.sql,Type,details[].Type,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,BaseRef,details[].BaseRef,integer,Preserve source value; no filing aggregation
+0619F,0619-F.sql,coname,details[].coname,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,taxidnum,details[].taxidnum,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,coaddr1,details[].coaddr1,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,cophone,details[].cophone,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,cozip,details[].cozip,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,rdo,details[].rdo,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,idvend,details[].idvend,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,addr1,details[].addr1,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,vendname,details[].vendname,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,vendzip,details[].vendzip,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,docmonth,details[].docmonth,integer,Preserve source value; no filing aggregation
+0619F,0619-F.sql,docyear,details[].docyear,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,taxableamt,details[].taxableamt,number,Preserve source value; no filing aggregation
+0619F,0619-F.sql,taxamt,details[].taxamt,number,Preserve source value; no filing aggregation
+0619F,0619-F.sql,taxrate_owht,details[].taxrate_owht,number,Preserve source value; no filing aggregation
+0619F,0619-F.sql,tin,details[].tin,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,taxtype,details[].taxtype,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,wtcode,details[].wtcode,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,WTName,details[].WTName,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,DocDate,details[].DocDate,string,Preserve source value; no filing aggregation
+0619F,0619-F.sql,coemail,details[].coemail,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,Type,details[].Type,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,BaseRef,details[].BaseRef,integer,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,coname,details[].coname,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,taxidnum,details[].taxidnum,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,coaddr1,details[].coaddr1,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,cophone,details[].cophone,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,coemail,details[].coemail,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,cozip,details[].cozip,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,rdo,details[].rdo,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,idvend,details[].idvend,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,addr1,details[].addr1,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,vendname,details[].vendname,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,vendzip,details[].vendzip,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,docmonth,details[].docmonth,integer,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,docyear,details[].docyear,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,taxableamt,details[].taxableamt,number,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,taxamt,details[].taxamt,number,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,taxrate_owht,details[].taxrate_owht,number,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,tin,details[].tin,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,taxtype,details[].taxtype,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,wtcode,details[].wtcode,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,WTName,details[].WTName,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,DocDate,details[].DocDate,string,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,month1,details[].month1,number,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,month2,details[].month2,number,Preserve source value; no filing aggregation
+1601FQ,1601-FQ.sql,month3,details[].month3,number,Preserve source value; no filing aggregation
+2306,2306.sql,Type,details[].Type,string,Preserve source value; no filing aggregation
+2306,2306.sql,BaseRef,details[].BaseRef,integer,Preserve source value; no filing aggregation
+2306,2306.sql,coname,details[].coname,string,Preserve source value; no filing aggregation
+2306,2306.sql,taxidnum,details[].taxidnum,string,Preserve source value; no filing aggregation
+2306,2306.sql,coaddr1,details[].coaddr1,string,Preserve source value; no filing aggregation
+2306,2306.sql,cophone,details[].cophone,string,Preserve source value; no filing aggregation
+2306,2306.sql,cozip,details[].cozip,string,Preserve source value; no filing aggregation
+2306,2306.sql,rdo,details[].rdo,string,Preserve source value; no filing aggregation
+2306,2306.sql,idvend,details[].idvend,string,Preserve source value; no filing aggregation
+2306,2306.sql,addr1,details[].addr1,string,Preserve source value; no filing aggregation
+2306,2306.sql,vendname,details[].vendname,string,Preserve source value; no filing aggregation
+2306,2306.sql,vendzip,details[].vendzip,string,Preserve source value; no filing aggregation
+2306,2306.sql,fiscperiod,details[].fiscperiod,integer,Preserve source value; no filing aggregation
+2306,2306.sql,fiscyear,details[].fiscyear,string,Preserve source value; no filing aggregation
+2306,2306.sql,taxableamt,details[].taxableamt,number,Preserve source value; no filing aggregation
+2306,2306.sql,taxamt,details[].taxamt,number,Preserve source value; no filing aggregation
+2306,2306.sql,tin,details[].tin,string,Preserve source value; no filing aggregation
+2306,2306.sql,taxtype,details[].taxtype,string,Preserve source value; no filing aggregation
+2306,2306.sql,wtcode,details[].wtcode,string,Preserve source value; no filing aggregation
+2306,2306.sql,WTName,details[].WTName,string,Preserve source value; no filing aggregation
+2306,2306.sql,DocDate,details[].DocDate,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,Type,details[].Type,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,tbl,details[].tbl,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,coname,details[].coname,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,taxidnum,details[].taxidnum,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,cophone,details[].cophone,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,coemail,details[].coemail,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,rdo,details[].rdo,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,coaddr1,details[].coaddr1,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,businessline,details[].businessline,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,cozip,details[].cozip,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,addr1,details[].addr1,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,docyear,details[].docyear,integer,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,docmonth,details[].docmonth,integer,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,LineTotal,details[].LineTotal,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,VatSum,details[].VatSum,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,idvend,details[].idvend,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,vendname,details[].vendname,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,vendzip,details[].vendzip,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,tin,details[].tin,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,CmpPrivate,details[].CmpPrivate,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,Actual_VatGroup,details[].Actual_VatGroup,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-NG,details[].IVAT-NG,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,total IVAT-NG,details[].total IVAT-NG,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,Amount_Of_Purchase_Of_Capital_Goods,details[].Amount_Of_Purchase_Of_Capital_Goods,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-CN,details[].IVAT-CN,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods,details[].Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-O,details[].IVAT-O,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,TOTAL IVAT-I,details[].TOTAL IVAT-I,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-I,details[].IVAT-I,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,TOTAL IVAT-S,details[].TOTAL IVAT-S,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-S,details[].IVAT-S,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,TOTAL IVAT-EZ,details[].TOTAL IVAT-EZ,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-SGNO,details[].IVAT-SGNO,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,IVAT-EN0,details[].IVAT-EN0,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,OVAT-NG,details[].OVAT-NG,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,OVAT-G,details[].OVAT-G,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,total OVAT-NG,details[].total OVAT-NG,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,total OVAT-G,details[].total OVAT-G,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,total OVAT-E,details[].total OVAT-E,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,total OVAT-Z,details[].total OVAT-Z,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,InputVAT,details[].InputVAT,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,WTAmnt,details[].WTAmnt,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,DocEntry,details[].DocEntry,integer,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,DocNum,details[].DocNum,integer,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,DocDate,details[].DocDate,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,DocTotal,details[].DocTotal,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,VatDate,details[].VatDate,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,GTotal,details[].GTotal,number,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,VatGroup,details[].VatGroup,string,Preserve source value; no filing aggregation
+2550M,2550M_10082025.sql,Code,details[].Code,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,qtr,details[].qtr,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,Type,details[].Type,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,tbl,details[].tbl,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,coname,details[].coname,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,taxidnum,details[].taxidnum,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,cophone,details[].cophone,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,coemail,details[].coemail,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,rdo,details[].rdo,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,coaddr1,details[].coaddr1,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,businessline,details[].businessline,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,cozip,details[].cozip,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,DocEntry,details[].DocEntry,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,DocNum,details[].DocNum,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,DocDate,details[].DocDate,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,DocTotal,details[].DocTotal,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,VatDate,details[].VatDate,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,addr1,details[].addr1,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,docmonth,details[].docmonth,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,docyear,details[].docyear,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,docquarter,details[].docquarter,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,PrevQtr,details[].PrevQtr,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,GTotal,details[].GTotal,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,LineTotal,details[].LineTotal,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,VatSum,details[].VatSum,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,VatGroup,details[].VatGroup,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,idvend,details[].idvend,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,vendname,details[].vendname,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,vendzip,details[].vendzip,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,tin,details[].tin,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,CmpPrivate,details[].CmpPrivate,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,Code,details[].Code,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,Actual_VatGroup,details[].Actual_VatGroup,string,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-NG,details[].IVAT-NG,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,total IVAT-NG,details[].total IVAT-NG,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,Amount_Of_Purchase_Of_Capital_Goods,details[].Amount_Of_Purchase_Of_Capital_Goods,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-CN,details[].IVAT-CN,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods,details[].Amount_Of_Purchase_Of_Goods_Other_Than_Capital_Goods,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-O,details[].IVAT-O,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TOTAL IVAT-I,details[].TOTAL IVAT-I,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-I,details[].IVAT-I,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TOTAL IVAT-S,details[].TOTAL IVAT-S,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-S,details[].IVAT-S,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TOTAL IVAT-EZ,details[].TOTAL IVAT-EZ,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-SGNO,details[].IVAT-SGNO,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-EN0,details[].IVAT-EN0,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,OVAT-NG,details[].OVAT-NG,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,OVAT-G,details[].OVAT-G,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,total OVAT-NG,details[].total OVAT-NG,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,total OVAT-G,details[].total OVAT-G,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,total OVAT-E,details[].total OVAT-E,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,total OVAT-Z,details[].total OVAT-Z,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,InputVAT,details[].InputVAT,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,WTAmnt,details[].WTAmnt,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,LineNum,details[].LineNum,integer,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TotalSales,details[].TotalSales,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TotalSalesTax,details[].TotalSalesTax,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TotalSalesToGov,details[].TotalSalesToGov,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,TotalSalesToGovTax,details[].TotalSalesToGovTax,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,IVAT-SGNO-GOV,details[].IVAT-SGNO-GOV,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,PrevInputVAT,details[].PrevInputVAT,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,21A,details[].21A,number,Preserve source value; no filing aggregation
+2550Q,2550Q_10142025.sql,21M,details[].21M,number,Preserve source value; no filing aggregation

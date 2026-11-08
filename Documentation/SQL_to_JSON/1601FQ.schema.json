@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "1601FQ SQL result JSON",
+  "description": "Application contract inferred from uploaded SQL, not an official BIR JSON specification. Nullable SQL values are retained. Each row preserves source grain.",
+  "type": "object",
+  "properties": {
+    "formType": {
+      "const": "1601FQ"
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column Type; SQL type inferred from source expression, verify against database metadata."
+          },
+          "BaseRef": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column BaseRef; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coname; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxidnum": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column taxidnum; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coaddr1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coaddr1; SQL type inferred from source expression, verify against database metadata."
+          },
+          "cophone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column cophone; SQL type inferred from source expression, verify against database metadata."
+          },
+          "coemail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column coemail; SQL type inferred from source expression, verify against database metadata."
+          },
+          "cozip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column cozip; SQL type inferred from source expression, verify against database metadata."
+          },
+          "rdo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column rdo; SQL type inferred from source expression, verify against database metadata."
+          },
+          "idvend": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column idvend; SQL type inferred from source expression, verify against database metadata."
+          },
+          "addr1": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column addr1; SQL type inferred from source expression, verify against database metadata."
+          },
+          "vendname": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column vendname; SQL type inferred from source expression, verify against database metadata."
+          },
+          "vendzip": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column vendzip; SQL type inferred from source expression, verify against database metadata."
+          },
+          "docmonth": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "SQL result column docmonth; SQL type inferred from source expression, verify against database metadata."
+          },
+          "docyear": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column docyear; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxableamt": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column taxableamt; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxamt": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column taxamt; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxrate_owht": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column taxrate_owht; SQL type inferred from source expression, verify against database metadata."
+          },
+          "tin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column tin; SQL type inferred from source expression, verify against database metadata."
+          },
+          "taxtype": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column taxtype; SQL type inferred from source expression, verify against database metadata."
+          },
+          "wtcode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column wtcode; SQL type inferred from source expression, verify against database metadata."
+          },
+          "WTName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column WTName; SQL type inferred from source expression, verify against database metadata."
+          },
+          "DocDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SQL result column DocDate; SQL type inferred from source expression, verify against database metadata. Serialize as ISO 8601 date-time."
+          },
+          "month1": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column month1; SQL type inferred from source expression, verify against database metadata."
+          },
+          "month2": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column month2; SQL type inferred from source expression, verify against database metadata."
+          },
+          "month3": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "SQL result column month3; SQL type inferred from source expression, verify against database metadata."
+          }
+        },
+        "required": [
+          "Type",
+          "BaseRef",
+          "coname",
+          "taxidnum",
+          "coaddr1",
+          "cophone",
+          "coemail",
+          "cozip",
+          "rdo",
+          "idvend",
+          "addr1",
+          "vendname",
+          "vendzip",
+          "docmonth",
+          "docyear",
+          "taxableamt",
+          "taxamt",
+          "taxrate_owht",
+          "tin",
+          "taxtype",
+          "wtcode",
+          "WTName",
+          "DocDate",
+          "month1",
+          "month2",
+          "month3"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "formType",
+    "details"
+  ],
+  "additionalProperties": false
+}

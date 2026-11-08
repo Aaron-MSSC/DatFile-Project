@@ -1,0 +1,28 @@
+{
+  "formType": "2306",
+  "details": [
+    {
+      "Type": null,
+      "BaseRef": null,
+      "coname": null,
+      "taxidnum": null,
+      "coaddr1": null,
+      "cophone": null,
+      "cozip": null,
+      "rdo": null,
+      "idvend": null,
+      "addr1": null,
+      "vendname": null,
+      "vendzip": null,
+      "fiscperiod": null,
+      "fiscyear": null,
+      "taxableamt": null,
+      "taxamt": null,
+      "tin": null,
+      "taxtype": null,
+      "wtcode": null,
+      "WTName": null,
+      "DocDate": null
+    }
+  ]
+}

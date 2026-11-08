@@ -1,0 +1,30 @@
+{
+  "formType": "0619F",
+  "details": [
+    {
+      "Type": null,
+      "BaseRef": null,
+      "coname": null,
+      "taxidnum": null,
+      "coaddr1": null,
+      "cophone": null,
+      "cozip": null,
+      "rdo": null,
+      "idvend": null,
+      "addr1": null,
+      "vendname": null,
+      "vendzip": null,
+      "docmonth": null,
+      "docyear": null,
+      "taxableamt": null,
+      "taxamt": null,
+      "taxrate_owht": null,
+      "tin": null,
+      "taxtype": null,
+      "wtcode": null,
+      "WTName": null,
+      "DocDate": null,
+      "coemail": null
+    }
+  ]
+}

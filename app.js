@@ -6,6 +6,7 @@
   const worksheetControl = document.getElementById("worksheet-control");
   const worksheetSelect = document.getElementById("worksheet");
   const reportType = document.getElementById("report-type");
+  const reportTypeChoices = [...document.querySelectorAll('input[name="report-type-choice"]')];
   const periodInput = document.getElementById("reporting-period");
   const agentInputs = {
     tin: document.getElementById("agent-tin"),
@@ -18,6 +19,11 @@
   const previewTable = document.getElementById("preview-table");
   const columnStatus = document.getElementById("column-status");
   const convertButton = document.getElementById("convert-button");
+  const nextButton = document.getElementById("next-button");
+  const backButton = document.getElementById("back-button");
+  const wizardProgress = document.getElementById("wizard-progress");
+  const wizardStages = [...document.querySelectorAll("[data-wizard-stage]")];
+  const wizardIndicators = [...document.querySelectorAll("[data-wizard-indicator]")];
   const errorMessage = document.getElementById("error-message");
   const resultCard = document.getElementById("result-card");
   const resultSummary = document.getElementById("result-summary");
@@ -28,6 +34,7 @@
   let selectedFile = null;
   let source = null;
   let outputUrl = null;
+  let currentStep = 1;
 
   fileInput.addEventListener("change", () => {
     const [file] = fileInput.files;
@@ -63,9 +70,24 @@
   });
 
   form.addEventListener("input", handleFormChange);
+  nextButton.addEventListener("click", advanceStep);
+  backButton.addEventListener("click", () => {
+    if (currentStep > 1) {
+      showStep(currentStep - 1);
+    }
+  });
   form.addEventListener("change", (event) => {
-    if (event.target === reportType) {
-      renderWorksheet();
+    if (event.target.matches('input[name="report-type-choice"]')) {
+      reportType.value = event.target.value;
+      reportTypeChoices.forEach((choice) => {
+        choice.closest(".report-option").classList.toggle("is-selected", choice.checked);
+      });
+      clearResult();
+      if (source) {
+        renderWorksheet();
+      } else {
+        updateReadyState();
+      }
     } else {
       handleFormChange();
     }
@@ -74,6 +96,7 @@
     event.preventDefault();
     convertWorkbook();
   });
+  showStep(currentStep);
 
   function showError(message) {
     errorMessage.textContent = message;
@@ -101,12 +124,64 @@
     updateReadyState();
   }
 
+  function advanceStep() {
+    clearError();
+    if (currentStep === 1 && !reportType.value) {
+      showError("Select the BIR report you want to create before continuing.");
+      return;
+    }
+    if (currentStep === 2 && (!selectedFile || !source || !source.headers.length)) {
+      showError("Choose a valid .xlsx workbook with a header row before continuing.");
+      return;
+    }
+    if (currentStep === 3 && !periodInput.value) {
+      showError("Choose a report period before continuing.");
+      return;
+    }
+    if (currentStep === 4 && !Object.values(agentInputs).every((input) => input.value.trim())) {
+      showError("Complete all withholding agent details before continuing.");
+      return;
+    }
+    if (currentStep < wizardStages.length) {
+      showStep(currentStep + 1);
+    }
+  }
+
+  function showStep(step) {
+    currentStep = step;
+    clearError();
+    wizardStages.forEach((stage) => {
+      const isPreview = stage.dataset.wizardStage === "5";
+      const shouldShow = Number(stage.dataset.wizardStage) === currentStep &&
+        (!isPreview || Boolean(source && source.headers.length));
+      stage.classList.toggle("hidden", !shouldShow);
+    });
+    wizardIndicators.forEach((indicator) => {
+      const indicatorStep = Number(indicator.dataset.wizardIndicator);
+      const isCurrent = indicatorStep === currentStep;
+      const isComplete = indicatorStep < currentStep;
+      indicator.classList.toggle("is-current", isCurrent);
+      indicator.classList.toggle("is-complete", isComplete);
+      if (isCurrent) {
+        indicator.setAttribute("aria-current", "step");
+      } else {
+        indicator.removeAttribute("aria-current");
+      }
+    });
+    wizardProgress.textContent = `Step ${currentStep} of ${wizardStages.length}`;
+    backButton.classList.toggle("hidden", currentStep === 1);
+    nextButton.classList.toggle("hidden", currentStep === wizardStages.length);
+    convertButton.classList.toggle("hidden", currentStep !== wizardStages.length);
+    updateReadyState();
+  }
+
   async function loadWorkbook(file) {
     clearResult();
     source = null;
     workbook = null;
     selectedFile = null;
     convertButton.disabled = true;
+    updateReadyState();
     previewCard.classList.add("hidden");
     worksheetControl.classList.add("hidden");
     fileStatus.textContent = file.name;
@@ -190,6 +265,7 @@
       previewCard.classList.add("hidden");
       previewSummary.textContent = "This worksheet is empty.";
       columnStatus.textContent = "Select a worksheet with a header row and payee records.";
+      updateReadyState();
       return;
     }
 
@@ -232,17 +308,28 @@
       ? `Required columns not found: ${missing.join(", ")}. Use the column headings for the selected report.`
       : "Required columns found. You can now create the DAT file.";
     previewCard.classList.remove("hidden");
-    updateReadyState();
+    showStep(currentStep);
   }
 
   function updateReadyState() {
     const hasSource = Boolean(selectedFile && source && source.headers.length);
-    const isComplete = Object.values(agentInputs).every((input) => input.value.trim()) &&
-      periodInput.value;
+    const hasAgentDetails = Object.values(agentInputs).every((input) => input.value.trim());
+    const hasReportType = Boolean(reportType.value);
+    const hasReportPeriod = Boolean(periodInput.value);
     const requiredColumnsPresent = hasSource &&
       DatConverter.getMissingColumns(source.headers, reportType.value).length === 0;
 
-    convertButton.disabled = !(hasSource && isComplete && requiredColumnsPresent);
+    nextButton.disabled = currentStep === 1
+      ? !hasReportType
+      : currentStep === 2
+        ? !hasSource
+        : currentStep === 3
+          ? !hasReportPeriod
+          : currentStep === 4
+            ? !hasAgentDetails
+          : true;
+    convertButton.disabled = !(hasReportType && hasSource && hasReportPeriod &&
+      hasAgentDetails && requiredColumnsPresent);
   }
 
   function convertWorkbook() {

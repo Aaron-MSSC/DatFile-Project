@@ -97,6 +97,109 @@ test("generates an Audit Trail file in the documented header and detail format",
   assert.equal(result.summary, "1 audit trail record · Total amount 0.00");
 });
 
+test("maps common SAP Audit Trail worksheet headings", () => {
+  const result = buildDat({
+    headers: [
+      "Generated Date & Time",
+      "User Code",
+      "User Login Name",
+      "Module Name",
+      "Activity Perform",
+      "Ref Number",
+      "Posting Date",
+      "Details",
+      "Amount"
+    ],
+    rows: [
+      ["06/01/2026 1:11:00AM", "ACCTG/USER 1", "Jho Hokam", "A/P INVOICE", "CREATE", 406, "", "Invoice created", 125]
+    ],
+    reportType: "AT",
+    period: "2026-06",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.match(result.text, /,AP INVOICE,CREATE,406,,Invoice created,125\.00,/);
+});
+
+test("parses day-first Audit Trail posting dates and rejects invalid calendar dates", () => {
+  const headers = [
+    "Generated Date & Time",
+    "User Code",
+    "User Login Name",
+    "Module Name",
+    "Activity Perform",
+    "Ref Number",
+    "Posting Date",
+    "Details",
+    "Amount"
+  ];
+  const row = [
+    "06/01/2026 1:11:00AM",
+    "ACCTG/USER 1",
+    "Jho Hokam",
+    "A/P INVOICE",
+    "CREATE",
+    406,
+    "22/12/2025",
+    "Invoice created",
+    125
+  ];
+  const valid = buildDat({
+    headers,
+    rows: [row],
+    reportType: "AT",
+    period: "2026-06",
+    agent
+  });
+
+  assert.deepEqual(valid.errors, []);
+  assert.match(valid.text, /,406,12\/22\/2025,Invoice created,/);
+
+  const invalid = buildDat({
+    headers,
+    rows: [[...row.slice(0, 6), "31/02/2025", ...row.slice(7)]],
+    reportType: "AT",
+    period: "2026-06",
+    agent
+  });
+  assert.ok(invalid.errors.some((error) => error.includes("Posting Date must be a valid date")));
+});
+
+test("supports negative Audit Trail amounts but keeps other report amounts non-negative", () => {
+  const auditTrail = buildDat({
+    headers: [
+      "Generated Date & Time",
+      "User Code",
+      "Username",
+      "Module",
+      "Activity",
+      "Reference No.",
+      "Details",
+      "Amount"
+    ],
+    rows: [
+      ["1/21/2013 11:28:00AM", "manager", "Jayson Butler", "ACCESS LOG", "ADJUST", 3920, "Adjustment", -125.5]
+    ],
+    reportType: "AT",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(auditTrail.errors, []);
+  assert.match(auditTrail.text, /,3920,,Adjustment,-125\.50,03\/2024/);
+  assert.equal(auditTrail.summary, "1 audit trail record · Total amount -125.50");
+
+  const receiptBook = buildDat({
+    headers: ["Date", "Debit", "Credit"],
+    rows: [["03/05/2024", -125.5, ""]],
+    reportType: "CRB",
+    period: "2024-03",
+    agent
+  });
+  assert.ok(receiptBook.errors.some((error) => error.includes("Debit must be a non-negative number")));
+});
+
 test("generates a Cash Receipt Book file and balances its control totals", () => {
   const result = buildDat({
     headers: [

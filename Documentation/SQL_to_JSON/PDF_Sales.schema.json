@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PDF_Sales documented export layout",
+  "description": "Proposed JSON envelope for PDF tabular layout; JSON is not the documented submission format.",
+  "type": "object",
+  "properties": {
+    "header": {
+      "type": "object",
+      "properties": {
+        "ALPHA_TYPE": {
+          "const": "H"
+        },
+        "FTYPE_CODE": {
+          "const": "S"
+        },
+        "TIN_A": {
+          "type": "string",
+          "pattern": "^[0-9]{9}$"
+        },
+        "REGISTERED_NAME_A": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "LAST_NAME_A": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "FIRST_NAME_A": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "MIDDLE_NAME_A": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "TRADER_NAME_A": {
+          "type": "string"
+        },
+        "ADDR_1": {
+          "type": "string"
+        },
+        "ADDR_2": {
+          "type": "string"
+        },
+        "TOTAL_EXEMPT": {
+          "type": "number",
+          "multipleOf": 0.01
+        },
+        "TOTAL_ZERO_RATED": {
+          "type": "number",
+          "multipleOf": 0.01
+        },
+        "TOTAL_TAX_BASE": {
+          "type": "number",
+          "multipleOf": 0.01
+        },
+        "TOTAL_OUTPUT": {
+          "type": "number",
+          "multipleOf": 0.01
+        },
+        "RDO_CODE_A": {
+          "type": "string",
+          "pattern": "^[0-9]{3}$"
+        },
+        "RETRN_PERIOD": {
+          "type": "string",
+          "pattern": "^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$",
+          "description": "PDF explicitly gives MM/DD/YYYY despite width 7; calendar validity requires application validation."
+        },
+        "TAX_RATE": {
+          "type": "number",
+          "multipleOf": 0.01
+        }
+      },
+      "required": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_A",
+        "REGISTERED_NAME_A",
+        "LAST_NAME_A",
+        "FIRST_NAME_A",
+        "MIDDLE_NAME_A",
+        "TRADER_NAME_A",
+        "ADDR_1",
+        "ADDR_2",
+        "TOTAL_EXEMPT",
+        "TOTAL_ZERO_RATED",
+        "TOTAL_TAX_BASE",
+        "TOTAL_OUTPUT",
+        "RDO_CODE_A",
+        "RETRN_PERIOD",
+        "TAX_RATE"
+      ],
+      "additionalProperties": false,
+      "x-column-order": [
+        "ALPHA_TYPE",
+        "FTYPE_CODE",
+        "TIN_A",
+        "REGISTERED_NAME_A",
+        "LAST_NAME_A",
+        "FIRST_NAME_A",
+        "MIDDLE_NAME_A",
+        "TRADER_NAME_A",
+        "ADDR_1",
+        "ADDR_2",
+        "TOTAL_EXEMPT",
+        "TOTAL_ZERO_RATED",
+        "TOTAL_TAX_BASE",
+        "TOTAL_OUTPUT",
+        "RDO_CODE_A",
+        "RETRN_PERIOD",
+        "TAX_RATE"
+      ]
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ALPHA_TYPE": {
+            "const": "D"
+          },
+          "FTYPE_CODE": {
+            "const": "S"
+          },
+          "TIN_PAYEE": {
+            "type": "string",
+            "pattern": "^[0-9]{9}$"
+          },
+          "REGISTERED_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "LAST_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "FIRST_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "MIDDLE_NAME_PAYEE": {
+            "type": "string",
+            "maxLength": 30
+          },
+          "ADDR_1": {
+            "type": "string"
+          },
+          "ADDR_2": {
+            "type": "string"
+          },
+          "EXEMPT": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "ZERO_RATED": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "TAX_BASE": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "OUTPUT_VAT": {
+            "type": "number",
+            "multipleOf": 0.01
+          },
+          "TIN_A": {
+            "type": "string",
+            "pattern": "^[0-9]{9}$"
+          },
+          "RETRN_PERIOD": {
+            "type": "string",
+            "pattern": "^(0[1-9]|1[0-2])/[0-9]{4}$"
+          }
+        },
+        "required": [
+          "ALPHA_TYPE",
+          "FTYPE_CODE",
+          "TIN_PAYEE",
+          "REGISTERED_NAME_PAYEE",
+          "LAST_NAME_PAYEE",
+          "FIRST_NAME_PAYEE",
+          "MIDDLE_NAME_PAYEE",
+          "ADDR_1",
+          "ADDR_2",
+          "EXEMPT",
+          "ZERO_RATED",
+          "TAX_BASE",
+          "OUTPUT_VAT",
+          "TIN_A",
+          "RETRN_PERIOD"
+        ],
+        "additionalProperties": false,
+        "x-column-order": [
+          "ALPHA_TYPE",
+          "FTYPE_CODE",
+          "TIN_PAYEE",
+          "REGISTERED_NAME_PAYEE",
+          "LAST_NAME_PAYEE",
+          "FIRST_NAME_PAYEE",
+          "MIDDLE_NAME_PAYEE",
+          "ADDR_1",
+          "ADDR_2",
+          "EXEMPT",
+          "ZERO_RATED",
+          "TAX_BASE",
+          "OUTPUT_VAT",
+          "TIN_A",
+          "RETRN_PERIOD"
+        ]
+      }
+    }
+  },
+  "required": [
+    "header",
+    "details"
+  ],
+  "additionalProperties": false
+}
