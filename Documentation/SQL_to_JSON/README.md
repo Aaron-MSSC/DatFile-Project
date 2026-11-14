@@ -7,6 +7,8 @@ Based on the five uploaded SQL files and Documentation(1).pdf (28 pages).
 - `0619F`, `1601FQ`, `2306`, `2550M`, `2550Q` schemas describe each SQL result as `{ "formType": "...", "details": [...] }` using JSON Schema Draft 2020-12.
 - Matching examples are structural, all-null examples, not completed tax returns. An empty result is `details: []`.
 - `SQL_to_JSON_mapping.csv` lists every projected SQL field, exact JSON path, and inferred type. SQL aliases, including spaces and hyphens, remain unchanged.
+- `1601EQ-return.schema.json` describes an application JSON structure for the 1601-EQ quarterly remittance return, based on the supplied January 2018 ENCS workbook. It is separate from the QAP/DAT export schema.
+- The converter exposes this return schema and the `2550M` / `2550Q` SQL-result schemas through `DatConverter.getJsonSchema("1601EQ-return")`, `DatConverter.getJsonSchema("2550M")`, and `DatConverter.getJsonSchema("2550Q")`. This does not add DAT conversions for those schemas.
 - `PDF_QAP_1601EQ`, `PDF_Sales`, and `PDF_Purchases` schemas describe the PDF's separate Header/Details/Control export structures. Their field order is retained in `x-column-order`; JSON object order itself is not validation.
 - `SQL_Server_JSON_pattern.sql` is an integration template requiring a populated #Result staging table; it does not directly execute the supplied procedures or modify SAP.
 
@@ -15,6 +17,8 @@ The PDF specifies Excel (.xlsx) input and DAT output, not a JSON API. These JSON
 ## Documentation boundaries
 
 The PDF's QAP field table explicitly describes 1601EQ (Expanded). The filename convention also lists 1601FQ, but a dedicated 1601FQ layout is not supplied. The QAP schema therefore retains 1601EQ constants; it must not be relabeled as a verified final-tax layout. 0619F and 2306 appear in the module list without field-level schemas. VAT 2550M/2550Q return box layouts are not supplied; the Sales/Purchase transaction sections are separate export layouts. SAWT is another withholding report, not a direct mapping of input/output VAT data.
+
+The 1601-EQ return schema is a proposed application contract derived from the supplied January 2018 ENCS Excel template, not a BIR-defined JSON API. It models the return's period, taxpayer, tax computation, payment details, and signature data; it does not enforce arithmetic reconciliation or determine filing eligibility.
 
 ## Withholding mapping to the documented QAP fields
 

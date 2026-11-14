@@ -27,6 +27,10 @@ Upload an `.xlsx` workbook in data-only form: use one header row followed by the
 - **1600VT — MAP:** Monthly Alphalist of Payees.
 - **1601EQ — QAP:** Quarterly Alphalist of Payees.
 
+### Value-Added Tax (VAT)
+- **2550M — SAWT:** Monthly Value-Added Tax Declaration Summary Alphalist of Withholding Taxes.
+- **2550Q — SAWT:** Quarterly Value-Added Tax Return Summary Alphalist of Withholding Taxes.
+
 ### Books of Accounts
 - **AT — Audit Trail:** Header and detail records; the supplied layout specifies no control record.
 - **CRB — Cash Receipt Book:** Header, detail, and debit/credit control totals.
@@ -43,7 +47,7 @@ Upload an `.xlsx` workbook in data-only form: use one header row followed by the
 
 Choose the report type that matches the worksheet:
 
-- **MAP and QAP** expect `Vendor TIN`, `Branch Code`, `Company Name`, `Last Name`, `First Name`, `Middle Name`, `ATC`, `Income Payment`, `Tax Rate`, and `Tax Amount`. `Nature of Income` is optional for MAP.
+- **MAP, QAP, and SAWT (2550M, 2550Q)** expect `Vendor TIN` (or `Taxpayer Identification No.`), `Branch Code`, `Company Name` (or `Corporation Registered Name`), `Last Name`, `First Name`, `Middle Name`, `ATC`, `Income Payment` (or `Amount of Income Payment`), `Tax Rate`, and `Tax Amount` (or `Amount of Tax Withheld`). `Nature of Income` is optional; when present, it is mapped to the DAT detail record.
 
 - **Audit Trail** expects `Generated Date & Time`, `User Code`, `Username`, `Module`, `Activity`, `Reference No.`, and `Amount`. `Posting Date`, `Details`, and `Return Period` are optional; when present, the return period is checked against the selected period.
 

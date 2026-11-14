@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildDat, cleanText, findColumns } = require("../converter");
+const { buildDat, cleanText, findColumns, getJsonSchema } = require("../converter");
 
 const headers = [
   "Reporting Month",
@@ -64,6 +64,152 @@ test("generates a QAP DAT file and totals multiple detail records", () => {
     "D1,1601EQ,2,111222333,0002,PAYEE TWO,TWO,BOB,C,03/2024,WC160,2.00,200.00,4.00",
     "C1,1601EQ,987654321,3333,03/2024,300.00,9.00"
   ]);
+});
+
+test("generates a 2550M SAWT DAT file with 10-field header, 15-field detail, 7-field control, and documented filename", () => {
+  const result = buildDat({
+    headers: [
+      "Reporting Month",
+      "Vendor TIN",
+      "Branch Code",
+      "Company Name",
+      "Last Name",
+      "First Name",
+      "Middle Name",
+      "Nature of Income",
+      "ATC",
+      "Income Payment",
+      "Tax Rate",
+      "Tax Amount"
+    ],
+    rows: [
+      ["03/2024", "123456789", 1, "TPSC PHILIPPINES CORPORATION", "", "", "", "Rentals", "WC100", 45000, 5, 2250]
+    ],
+    reportType: "2550M",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "98765432133330320242550M.DAT");
+  assert.equal(result.detailCount, 1);
+  assert.deepEqual(result.text.split("\r\n"), [
+    "HSAWT,H2550M,987654321,3333,CONDE CRISTINA MONDELO,,,,03/2024,143",
+    "DSAWT,D2550M,1,123456789,0001,TPSC PHILIPPINES CORPORATION,,,,03/2024,Rentals,WC100,5.00,45000.00,2250.00",
+    "CSAWT,C2550M,987654321,3333,03/2024,45000.00,2250.00"
+  ]);
+  assert.equal(result.summary, "1 detail record · Total income 45000.00 · Total tax withheld 2250.00");
+});
+
+test("generates a 2550Q SAWT DAT file with multiple detail records and control totals", () => {
+  const result = buildDat({
+    headers,
+    rows: [
+      ["03/2024", "000111222", "0000", "", "KATINDIG", "ROBIN", "PADILLA", "WC051", 300000, 15, 45000],
+      ["03/2024", "432222222", "0000", "ONE COMPANY", "", "", "", "WC010", 25000, 10, 2500]
+    ],
+    reportType: "2550Q",
+    period: "2024-03",
+    agent: {
+      ...agent,
+      lastName: "CONDE",
+      firstName: "CRISTINA",
+      middleName: "MONDELO"
+    }
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "98765432133330320242550Q.DAT");
+  assert.equal(result.detailCount, 2);
+  assert.deepEqual(result.text.split("\r\n"), [
+    "HSAWT,H2550Q,987654321,3333,CONDE CRISTINA MONDELO,CONDE,CRISTINA,MONDELO,03/2024,143",
+    "DSAWT,D2550Q,1,000111222,0000,,KATINDIG,ROBIN,PADILLA,03/2024,,WC051,15.00,300000.00,45000.00",
+    "DSAWT,D2550Q,2,432222222,0000,ONE COMPANY,,,,03/2024,,WC010,10.00,25000.00,2500.00",
+    "CSAWT,C2550Q,987654321,3333,03/2024,325000.00,47500.00"
+  ]);
+  assert.equal(result.summary, "2 detail records · Total income 325000.00 · Total tax withheld 47500.00");
+});
+
+test("validates cleaned SAWT withholding-agent name parts against the 30-character limit", () => {
+  const row = ["03/2024", "123456789", "0001", "PAYEE", "", "", "", "WC100", 100, 5, 5];
+
+  for (const [field, label] of [
+    ["lastName", "Last Name"],
+    ["firstName", "First Name"],
+    ["middleName", "Middle Name"]
+  ]) {
+    const valid = buildDat({
+      headers,
+      rows: [row],
+      reportType: "2550Q",
+      period: "2024-03",
+      agent: { ...agent, [field]: "A".repeat(30) }
+    });
+    assert.deepEqual(valid.errors, []);
+
+    const invalid = buildDat({
+      headers,
+      rows: [row],
+      reportType: "2550Q",
+      period: "2024-03",
+      agent: { ...agent, [field]: "A".repeat(31) }
+    });
+    assert.ok(invalid.errors.some((error) => error.includes(`Withholding agent ${label}`)));
+    assert.equal(invalid.text, "");
+  }
+
+  const cleaned = buildDat({
+    headers,
+    rows: [row],
+    reportType: "2550Q",
+    period: "2024-03",
+    agent: { ...agent, lastName: `${"A".repeat(29)},!` }
+  });
+  assert.deepEqual(cleaned.errors, []);
+  assert.equal(cleaned.text.split("\r\n")[0].split(",")[5], "A".repeat(29));
+});
+
+test("maps SAWT column headings from SAWT.xlsx", () => {
+  const result = buildDat({
+    headers: [
+      "Taxpayer Identification No.",
+      "Branch Code",
+      "Corporation (Registered Name)",
+      "Last Name",
+      "First Name",
+      "Middle Name",
+      "ATC Code",
+      "Nature of Income",
+      "Amount of Income Payment",
+      "Tax Rate",
+      "Amount of Tax Withheld"
+    ],
+    rows: [
+      ["009073361", "000", "TPSC PHILIPPINES CORPORATION", "", "", "", "WC100", "Rentals", 45000, 5, 2250]
+    ],
+    reportType: "2550M",
+    period: "2024-03",
+    agent
+  });
+
+  assert.deepEqual(result.errors, []);
+  assert.equal(result.filename, "98765432133330320242550M.DAT");
+  assert.match(result.text, /DSAWT,D2550M,1,009073361,0000,TPSC PHILIPPINES CORPORATION,,,,03\/2024,Rentals,WC100,5\.00,45000\.00,2250\.00/);
+});
+
+test("exposes 1601-EQ, 2550M, and 2550Q schemas separately from DAT report types", async () => {
+  const expectedFormTypes = {
+    "1601EQ-return": "1601-EQ",
+    "2550M": "2550M",
+    "2550Q": "2550Q"
+  };
+  for (const [schemaId, formType] of Object.entries(expectedFormTypes)) {
+    const schema = await getJsonSchema(schemaId);
+    assert.equal(schema.properties.formType.const, formType);
+  }
+
+  assert.equal((await getJsonSchema("1601EQ-return")).title, "BIR Form 1601-EQ return JSON");
+  await assert.rejects(getJsonSchema("1601EQ"), /Unsupported JSON schema/);
 });
 
 test("generates an Audit Trail file in the documented header and detail format", () => {

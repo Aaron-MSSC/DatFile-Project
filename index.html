@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f5f7fb">
+    <meta name="theme-color" content="#090d2b">
     <title>Excel to DAT Converter</title>
     <link rel="stylesheet" href="/styles.css">
     <script defer src="/vendor/xlsx.full.min.js"></script>
@@ -62,8 +62,8 @@
       <div id="converter-view" class="hidden">
       <section class="intro">
         <p class="eyebrow">BIR ALPHALIST EXPORT</p>
-        <h1>Excel to DAT</h1>
-        <p class="intro-copy">Convert a report workbook into a validator-ready DAT file.</p>
+        <h1>Convert your <span>Excel</span><br>file easily</h1>
+        <p class="intro-copy">Turn your report workbook into a validator-ready DAT file, right in your browser.</p>
       </section>
 
       <form id="converter-form" novalidate>
@@ -121,6 +121,31 @@
                   <strong>Quarterly Alphalist of Payees</strong>
                   <span class="report-form">BIR Form 1601-EQ</span>
                   <span class="report-description">Quarterly summary of payees and withholding tax details.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="report-category">
+            <legend>Value-Added Tax (VAT)</legend>
+            <div class="report-card-grid">
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="2550M">
+                <span class="report-option-content">
+                  <span class="report-code">2550M · SAWT</span>
+                  <strong>Monthly Value-Added Tax Declaration</strong>
+                  <span class="report-form">BIR Form 2550M</span>
+                  <span class="report-description">Monthly summary alphalist of withholding taxes (SAWT) for VAT.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="report-type-choice" value="2550Q">
+                <span class="report-option-content">
+                  <span class="report-code">2550Q · SAWT</span>
+                  <strong>Quarterly Value-Added Tax Return</strong>
+                  <span class="report-form">BIR Form 2550Q</span>
+                  <span class="report-description">Quarterly summary alphalist of withholding taxes (SAWT) for VAT.</span>
                 </span>
                 <span class="report-check" aria-hidden="true">✓</span>
               </label>
@@ -323,7 +348,7 @@
 
         <div id="error-message" class="error-message hidden" role="alert"></div>
         <div class="wizard-actions">
-          <span id="wizard-progress" class="wizard-progress" aria-live="polite">Step 1 of 4</span>
+          <span id="wizard-progress" class="wizard-progress" aria-live="polite">Step 1 of 5</span>
           <div class="wizard-action-buttons">
             <button id="back-button" class="secondary-button hidden" type="button">Back</button>
             <button id="next-button" class="primary-button" type="button" disabled>

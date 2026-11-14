@@ -12,6 +12,9 @@ const files = new Map([
   ["/auth-client.js", ["auth-client.js", "text/javascript; charset=utf-8"]],
   ["/app.js", ["app.js", "text/javascript; charset=utf-8"]],
   ["/converter.js", ["converter.js", "text/javascript; charset=utf-8"]],
+  ["/schemas/1601EQ-return.schema.json", ["Documentation/SQL_to_JSON/1601EQ-return.schema.json", "application/json; charset=utf-8"]],
+  ["/schemas/2550M.schema.json", ["Documentation/SQL_to_JSON/2550M.schema.json", "application/json; charset=utf-8"]],
+  ["/schemas/2550Q.schema.json", ["Documentation/SQL_to_JSON/2550Q.schema.json", "application/json; charset=utf-8"]],
   ["/vendor/xlsx.full.min.js", ["node_modules/xlsx/dist/xlsx.full.min.js", "text/javascript; charset=utf-8"]]
 ]);
 

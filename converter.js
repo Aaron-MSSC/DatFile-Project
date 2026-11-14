@@ -27,21 +27,58 @@
       controlType: "C1",
       controlCode: "1601EQ",
       schedule: "D1"
+    },
+    "2550M": {
+      title: "Monthly Value-Added Tax Declaration (SAWT 2550M)",
+      headerType: "HSAWT",
+      headerCode: "H2550M",
+      detailType: "DSAWT",
+      detailCode: "D2550M",
+      controlType: "CSAWT",
+      controlCode: "C2550M",
+      schedule: null,
+      isSawt: true
+    },
+    "2550Q": {
+      title: "Quarterly Value-Added Tax Return (SAWT 2550Q)",
+      headerType: "HSAWT",
+      headerCode: "H2550Q",
+      detailType: "DSAWT",
+      detailCode: "D2550Q",
+      controlType: "CSAWT",
+      controlCode: "C2550Q",
+      schedule: null,
+      isSawt: true
+    }
+  };
+
+  const JSON_SCHEMAS = {
+    "1601EQ-return": {
+      nodePath: "./Documentation/SQL_to_JSON/1601EQ-return.schema.json",
+      browserPath: "/schemas/1601EQ-return.schema.json"
+    },
+    "2550M": {
+      nodePath: "./Documentation/SQL_to_JSON/2550M.schema.json",
+      browserPath: "/schemas/2550M.schema.json"
+    },
+    "2550Q": {
+      nodePath: "./Documentation/SQL_to_JSON/2550Q.schema.json",
+      browserPath: "/schemas/2550Q.schema.json"
     }
   };
 
   const COLUMNS = {
-    tin: ["vendortin", "tinpayee", "tin"],
-    branch: ["branchcode", "branchcodepayee", "vendorbranchcode"],
-    registeredName: ["companyname", "registeredname", "vendorname"],
+    tin: ["vendortin", "tinpayee", "payeetin", "taxpayeridentificationno", "vendort", "tin"],
+    branch: ["branchcode", "branchcodepayee", "vendorbranchcode", "branchco", "branch"],
+    registeredName: ["companyname", "registeredname", "vendorname", "corporationregisteredname", "corporation"],
     lastName: ["lastname", "surname", "surnames"],
     firstName: ["firstname", "givenname"],
     middleName: ["middlename", "middlenamepayee"],
     atc: ["atc", "atccode"],
     nature: ["natureincome", "natureofincome", "natureofincomepayment"],
-    income: ["incomepayment", "incomepaym", "taxbase"],
-    rate: ["taxrate", "rateoftax"],
-    withheld: ["taxamount", "actualamtwithheld", "amountwithheld"],
+    income: ["incomepayment", "incomepaym", "incomepay", "taxbase", "amountofincomepayment"],
+    rate: ["taxrate", "rateoftax", "ewtrate"],
+    withheld: ["taxamount", "actualamtwithheld", "amountwithheld", "amountoftaxwithheld", "taxamou"],
     reportingMonth: ["reportingmonth", "returnperiod", "taxablemonth"]
   };
 
@@ -233,6 +270,8 @@
   const REPORT_COLUMNS = {
     "1600VT": REQUIRED_COLUMNS.map(([field]) => field),
     "1601EQ": REQUIRED_COLUMNS.map(([field]) => field),
+    "2550M": REQUIRED_COLUMNS.map(([field]) => field),
+    "2550Q": REQUIRED_COLUMNS.map(([field]) => field),
     AT: ["datetime", "userCode", "username", "module", "action", "reference", "details", "amount"],
     CRB: ["date", "debit", "credit"],
     CMJ: ["date", "tin", "name", "amount", "net"],
@@ -1176,6 +1215,24 @@
               formatCents(income),
               formatCents(withheld)
             ]
+          : report.isSawt
+          ? [
+              report.detailType,
+              report.detailCode,
+              String(detailRows.length + 1),
+              payeeTin,
+              payeeBranch,
+              name,
+              lastName,
+              firstName,
+              middleName,
+              selectedPeriod.formatted,
+              nature,
+              atc,
+              formatCents(rate),
+              formatCents(income),
+              formatCents(withheld)
+            ]
           : [
               report.detailType,
               report.detailCode,
@@ -1212,19 +1269,47 @@
       errors.push("Total tax withheld exceeds the documented 11-digit amount limit.");
     }
 
+    const agentLastName = cleanText(agent?.lastName ?? "");
+    const agentFirstName = cleanText(agent?.firstName ?? "");
+    const agentMiddleName = cleanText(agent?.middleName ?? "");
+    if (report.isSawt) {
+      for (const [label, value] of [
+        ["Last Name", agentLastName],
+        ["First Name", agentFirstName],
+        ["Middle Name", agentMiddleName]
+      ]) {
+        if (value.length > 30) {
+          errors.push(`Withholding agent ${label} must be 30 characters or fewer after removing special characters.`);
+        }
+      }
+    }
+
     if (errors.length) {
       return { errors, filename: "", text: "", columns, missingColumns };
     }
 
-    const header = [
-      report.headerType,
-      report.headerCode,
-      agentTin,
-      agentBranch,
-      agentName,
-      selectedPeriod.formatted,
-      agentRdo
-    ];
+    const header = report.isSawt
+      ? [
+          report.headerType,
+          report.headerCode,
+          agentTin,
+          agentBranch,
+          agentName,
+          agentLastName,
+          agentFirstName,
+          agentMiddleName,
+          selectedPeriod.formatted,
+          agentRdo
+        ]
+      : [
+          report.headerType,
+          report.headerCode,
+          agentTin,
+          agentBranch,
+          agentName,
+          selectedPeriod.formatted,
+          agentRdo
+        ];
 
     const control = [
       report.controlType,
@@ -1283,11 +1368,29 @@
     return null;
   }
 
+  async function getJsonSchema(schemaId) {
+    if (!Object.prototype.hasOwnProperty.call(JSON_SCHEMAS, schemaId)) {
+      throw new Error(`Unsupported JSON schema: ${schemaId}`);
+    }
+
+    const schema = JSON_SCHEMAS[schemaId];
+    if (typeof module !== "undefined" && module.exports) {
+      return require(schema.nodePath);
+    }
+
+    const response = await fetch(schema.browserPath);
+    if (!response.ok) {
+      throw new Error(`Could not load JSON schema: ${schemaId}`);
+    }
+    return response.json();
+  }
+
   return {
     REPORTS,
     buildDat,
     cleanText,
     findColumns,
+    getJsonSchema,
     getMissingColumns,
     getRequiredColumns,
     normalizeHeader,

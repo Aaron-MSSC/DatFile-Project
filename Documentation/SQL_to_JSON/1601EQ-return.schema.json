@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BIR Form 1601-EQ return JSON",
+  "description": "Proposed application JSON contract based on the supplied January 2018 ENCS 1601-EQ workbook. This is not an official BIR JSON filing specification; blank form fields may be null, and arithmetic or filing rules are not cross-validated.",
+  "type": "object",
+  "$defs": {
+    "amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Amount as a decimal number, or null when the form cell is blank."
+    },
+    "formDate": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/[0-9]{4}$",
+      "description": "MM/DD/YYYY as printed on the form. Calendar-date validity must be checked by the application."
+    }
+  },
+  "properties": {
+    "formType": {
+      "const": "1601-EQ"
+    },
+    "period": {
+      "type": "object",
+      "properties": {
+        "year": {
+          "type": "string",
+          "pattern": "^[0-9]{4}$"
+        },
+        "quarter": {
+          "type": "string",
+          "enum": [
+            "1st",
+            "2nd",
+            "3rd",
+            "4th"
+          ]
+        },
+        "amendedReturn": {
+          "type": "boolean"
+        },
+        "anyTaxesWithheld": {
+          "type": "boolean"
+        },
+        "sheetsAttached": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "year",
+        "quarter",
+        "amendedReturn",
+        "anyTaxesWithheld",
+        "sheetsAttached"
+      ],
+      "additionalProperties": false
+    },
+    "taxpayer": {
+      "type": "object",
+      "properties": {
+        "tin": {
+          "type": "string"
+        },
+        "rdoCode": {
+          "type": "string"
+        },
+        "withholdingAgentName": {
+          "type": "string"
+        },
+        "registeredAddress": {
+          "type": "string"
+        },
+        "zipCode": {
+          "type": "string"
+        },
+        "contactNumber": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Private",
+            "Government"
+          ]
+        },
+        "emailAddress": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Email address, or null when the form cell is blank."
+        }
+      },
+      "required": [
+        "tin",
+        "rdoCode",
+        "withholdingAgentName",
+        "registeredAddress",
+        "zipCode",
+        "contactNumber",
+        "category",
+        "emailAddress"
+      ],
+      "additionalProperties": false
+    },
+    "computation": {
+      "type": "object",
+      "properties": {
+        "taxBreakdown": {
+          "type": "array",
+          "description": "Items 13-18: ATC, tax base, tax rate, and tax withheld consolidated for the quarter.",
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "properties": {
+              "itemNumber": {
+                "type": "integer",
+                "enum": [
+                  13,
+                  14,
+                  15,
+                  16,
+                  17,
+                  18
+                ]
+              },
+              "atc": {
+                "type": "string"
+              },
+              "taxBase": {
+                "$ref": "#/$defs/amount"
+              },
+              "taxRate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "taxWithheld": {
+                "$ref": "#/$defs/amount"
+              }
+            },
+            "required": [
+              "itemNumber",
+              "atc",
+              "taxBase",
+              "taxRate",
+              "taxWithheld"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "totalTaxesWithheld": {
+          "$ref": "#/$defs/amount",
+          "description": "Item 19: total taxes withheld for the quarter."
+        },
+        "remittances": {
+          "type": "object",
+          "properties": {
+            "firstMonth": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 20."
+            },
+            "secondMonth": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 21."
+            },
+            "previouslyFiledReturn": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 22: tax remitted in the return previously filed, if this is an amended return."
+            },
+            "priorQuarterOverremittance": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 23."
+            },
+            "otherPayments": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 24."
+            },
+            "totalRemittances": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 25."
+            },
+            "taxStillDueOrOverremittance": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 26; may be negative for an over-remittance."
+            },
+            "penalties": {
+              "type": "object",
+              "properties": {
+                "surcharge": {
+                  "$ref": "#/$defs/amount"
+                },
+                "interest": {
+                  "$ref": "#/$defs/amount"
+                },
+                "compromise": {
+                  "$ref": "#/$defs/amount"
+                },
+                "totalPenalties": {
+                  "$ref": "#/$defs/amount",
+                  "description": "Item 30."
+                }
+              },
+              "required": [
+                "surcharge",
+                "interest",
+                "compromise",
+                "totalPenalties"
+              ],
+              "additionalProperties": false
+            },
+            "totalAmountDueOrOverremittance": {
+              "$ref": "#/$defs/amount",
+              "description": "Item 31."
+            },
+            "overremittanceDisposition": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "carryOver",
+                "refund",
+                "taxCreditCertificate",
+                null
+              ]
+            }
+          },
+          "required": [
+            "firstMonth",
+            "secondMonth",
+            "previouslyFiledReturn",
+            "priorQuarterOverremittance",
+            "otherPayments",
+            "totalRemittances",
+            "taxStillDueOrOverremittance",
+            "penalties",
+            "totalAmountDueOrOverremittance",
+            "overremittanceDisposition"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "taxBreakdown",
+        "totalTaxesWithheld",
+        "remittances"
+      ],
+      "additionalProperties": false
+    },
+    "paymentDetails": {
+      "type": "array",
+      "description": "Part III payment entries. Date is MM/DD/YYYY as printed on the form.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "cashBankDebitMemo",
+              "check",
+              "taxDebitMemo",
+              "other"
+            ]
+          },
+          "draweeBankAgency": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "number": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "date": {
+            "$ref": "#/$defs/formDate"
+          },
+          "amount": {
+            "$ref": "#/$defs/amount"
+          }
+        },
+        "required": [
+          "type",
+          "draweeBankAgency",
+          "number",
+          "date",
+          "amount"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "signature": {
+      "type": "object",
+      "properties": {
+        "printedName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "titleOrDesignation": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tin": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "taxAgentAccreditationNumber": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "attorneyRollNumber": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "accreditationIssueDate": {
+          "$ref": "#/$defs/formDate"
+        },
+        "accreditationExpiryDate": {
+          "$ref": "#/$defs/formDate"
+        }
+      },
+      "required": [
+        "printedName",
+        "titleOrDesignation",
+        "tin",
+        "taxAgentAccreditationNumber",
+        "attorneyRollNumber",
+        "accreditationIssueDate",
+        "accreditationExpiryDate"
+      ],
+      "additionalProperties": false
+    },
+    "officialUse": {
+      "type": "object",
+      "properties": {
+        "machineValidationReceiptDetails": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "receivingOfficeStampAndDate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "machineValidationReceiptDetails",
+        "receivingOfficeStampAndDate"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "formType",
+    "period",
+    "taxpayer",
+    "computation",
+    "paymentDetails",
+    "signature",
+    "officialUse"
+  ],
+  "additionalProperties": false
+}
