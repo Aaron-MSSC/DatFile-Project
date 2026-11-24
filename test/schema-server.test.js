@@ -8,6 +8,7 @@ test("serves registered JSON schemas for the browser converter", async (t) => {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 
   for (const [schemaId, formType] of [
+    ["0619F", "0619F"],
     ["1601EQ-return", "1601-EQ"],
     ["2550M", "2550M"],
     ["2550Q", "2550Q"]

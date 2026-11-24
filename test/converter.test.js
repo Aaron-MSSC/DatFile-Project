@@ -1,6 +1,14 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildDat, cleanText, findColumns, getJsonSchema } = require("../converter");
+const {
+  buildDat,
+  cleanText,
+  findColumns,
+  getColumnSuggestions,
+  getJsonSchema,
+  parseExcelDate,
+  validateAtcTaxRate
+} = require("../converter");
 
 const headers = [
   "Reporting Month",
@@ -27,7 +35,7 @@ test("generates a MAP DAT file with header, detail, control, and documented file
   const result = buildDat({
     headers,
     rows: [
-      ["2024-03-01", "123456789", 1, "TEST, COMPANY", "ONE", "ALEX", "B", "WC158", 1250, 5, 62.5]
+      ["2024-03-01", "123456789", "0001", "TEST, COMPANY", "ONE", "ALEX", "B", "WC158", 1250, 5, 62.5]
     ],
     reportType: "1600VT",
     period: "2024-03",
@@ -49,7 +57,7 @@ test("generates a QAP DAT file and totals multiple detail records", () => {
     headers,
     rows: [
       ["03/2024", "123456789", "0001", "PAYEE ONE", "ONE", "ALICE", "", "WC158", 100, 5, 5],
-      ["03/2024", "111222333", "2", "PAYEE TWO", "TWO", "BOB", "C", "WC160", 200, 2, 4]
+      ["03/2024", "111222333", "0002", "PAYEE TWO", "TWO", "BOB", "C", "WC160", 200, 2, 4]
     ],
     reportType: "1601EQ",
     period: "2024-03",
@@ -83,7 +91,7 @@ test("generates a 2550M SAWT DAT file with 10-field header, 15-field detail, 7-f
       "Tax Amount"
     ],
     rows: [
-      ["03/2024", "123456789", 1, "TPSC PHILIPPINES CORPORATION", "", "", "", "Rentals", "WC100", 45000, 5, 2250]
+      ["03/2024", "123456789", "0001", "TPSC PHILIPPINES CORPORATION", "", "", "", "Rentals", "WC100", 45000, 5, 2250]
     ],
     reportType: "2550M",
     period: "2024-03",
@@ -194,11 +202,12 @@ test("maps SAWT column headings from SAWT.xlsx", () => {
 
   assert.deepEqual(result.errors, []);
   assert.equal(result.filename, "98765432133330320242550M.DAT");
-  assert.match(result.text, /DSAWT,D2550M,1,009073361,0000,TPSC PHILIPPINES CORPORATION,,,,03\/2024,Rentals,WC100,5\.00,45000\.00,2250\.00/);
+  assert.match(result.text, /DSAWT,D2550M,1,009073361,000,TPSC PHILIPPINES CORPORATION,,,,03\/2024,Rentals,WC100,5\.00,45000\.00,2250\.00/);
 });
 
-test("exposes 1601-EQ, 2550M, and 2550Q schemas separately from DAT report types", async () => {
+test("exposes 0619-F, 1601-EQ, 2550M, and 2550Q schemas separately from DAT report types", async () => {
   const expectedFormTypes = {
+    "0619F": "0619F",
     "1601EQ-return": "1601-EQ",
     "2550M": "2550M",
     "2550Q": "2550Q"
@@ -697,18 +706,45 @@ test("reports missing required columns and invalid record values", () => {
   assert.ok(invalid.errors.some((error) => error.includes("Income Payment")));
 });
 
-test("pads identifiers and reports invalid or mismatched reporting periods", () => {
-  const padded = buildDat({
+test("validates identifier lengths without padding and reports invalid or mismatched reporting periods", () => {
+  const validIdentifiers = buildDat({
     headers,
     rows: [
-      ["02/21/2024", "12345678", 1, "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
+      ["02/21/2024", "012345678", "001", "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
+    ],
+    reportType: "1600VT",
+    period: "2024-02",
+    agent: { tin: "012345678", branch: "001", rdo: "003", name: "Agent" }
+  });
+  assert.deepEqual(validIdentifiers.errors, []);
+  assert.match(validIdentifiers.text, /^HMAP,H1600VT,012345678,001,Agent,02\/2024,003/);
+  assert.match(validIdentifiers.text, /DMAP,D1600VT,1,012345678,001,/);
+
+  const shortIdentifiers = buildDat({
+    headers,
+    rows: [
+      ["02/21/2024", "12345678", "1", "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
     ],
     reportType: "1600VT",
     period: "2024-02",
     agent: { tin: "12345678", branch: "1", rdo: "3", name: "Agent" }
   });
-  assert.deepEqual(padded.errors, []);
-  assert.match(padded.text, /^HMAP,H1600VT,012345678,0001,Agent,02\/2024,003/);
+  assert.ok(shortIdentifiers.errors.some((error) => error.includes("Withholding agent TIN must contain exactly 9 digits")));
+  assert.ok(shortIdentifiers.errors.some((error) => error.includes("Withholding agent branch code must contain 3 to 4 digits")));
+  assert.ok(shortIdentifiers.errors.some((error) => error.includes("Withholding agent RDO code must contain exactly 3 digits")));
+  assert.equal(shortIdentifiers.text, "");
+
+  const shortPayeeIdentifiers = buildDat({
+    headers,
+    rows: [
+      ["02/21/2024", "12345678", "1", "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
+    ],
+    reportType: "1600VT",
+    period: "2024-02",
+    agent
+  });
+  assert.ok(shortPayeeIdentifiers.errors.some((error) => error.includes("Vendor TIN must contain exactly 9 digits")));
+  assert.ok(shortPayeeIdentifiers.errors.some((error) => error.includes("Branch Code must contain 3 to 4 digits")));
 
   const invalidPeriod = buildDat({
     headers,
@@ -722,7 +758,7 @@ test("pads identifiers and reports invalid or mismatched reporting periods", () 
   const mismatchedPeriod = buildDat({
     headers,
     rows: [
-      ["03/2024", "123456789", 1, "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
+      ["03/2024", "123456789", "0001", "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5]
     ],
     reportType: "1600VT",
     period: "2024-02",
@@ -735,4 +771,47 @@ test("normalizes column headings and removes special characters from DAT text", 
   assert.equal(findColumns(["Vendor TIN", "Company_Name"]).tin, 0);
   assert.equal(findColumns(["Vendor TIN", "Company_Name"]).registeredName, 1);
   assert.equal(cleanText("Méndez, & Sons, Inc."), "Mendez Sons Inc");
+});
+
+test("supports ISO, day-first, month-first, and Excel serial dates", () => {
+  assert.equal(parseExcelDate("2024-03-15").getFullYear(), 2024);
+  assert.equal(parseExcelDate("15/03/2024").getMonth(), 2);
+  assert.equal(parseExcelDate("03/15/2024").getDate(), 15);
+  assert.equal(parseExcelDate(45356).getFullYear(), 2024);
+});
+
+test("validates ATC codes against regatc.dbf and rejects unregistered codes", () => {
+  assert.equal(validateAtcTaxRate("WC158", 5).valid, true);
+  assert.equal(validateAtcTaxRate("WC158", 10).valid, true);
+  assert.equal(validateAtcTaxRate("UNREGISTERED", 15).valid, false);
+
+  const unknown = buildDat({
+    headers,
+    rows: [["03/2024", "123456789", "0001", "PAYEE", "ONE", "A", "", "XX999", 100, 10, 10]],
+    reportType: "1601EQ",
+    period: "2024-03",
+    agent
+  });
+  assert.ok(unknown.errors.some((error) => error.includes("is not present in the BIR DAT validator ATC reference")));
+});
+
+test("normalizes quarterly reporting months and suggests ERP column aliases", () => {
+  const quarterly = buildDat({
+    headers,
+    rows: [
+      ["2024-01-15", "123456789", "0001", "PAYEE", "ONE", "A", "", "WC158", 100, 5, 5],
+      ["15/02/2024", "111222333", "0002", "PAYEE TWO", "TWO", "B", "", "WC160", 200, 2, 4]
+    ],
+    reportType: "1601EQ",
+    period: "2024-03",
+    agent
+  });
+  assert.deepEqual(quarterly.errors, []);
+
+  const suggestions = getColumnSuggestions(
+    ["Tax Registraton Number", "Brnach Code", "Registred Legal Name"],
+    "1601EQ"
+  );
+  assert.ok(suggestions.some((item) => item.field === "tin"));
+  assert.ok(suggestions.some((item) => item.field === "branch"));
 });

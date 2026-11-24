@@ -53,9 +53,21 @@
   };
 
   const JSON_SCHEMAS = {
+    "0619F": {
+      nodePath: "./Documentation/SQL_to_JSON/0619F.schema.json",
+      browserPath: "/schemas/0619F.schema.json"
+    },
     "1601EQ-return": {
       nodePath: "./Documentation/SQL_to_JSON/1601EQ-return.schema.json",
       browserPath: "/schemas/1601EQ-return.schema.json"
+    },
+    "1601FQ": {
+      nodePath: "./Documentation/SQL_to_JSON/1601FQ.schema.json",
+      browserPath: "/schemas/1601FQ.schema.json"
+    },
+    "2306": {
+      nodePath: "./Documentation/SQL_to_JSON/2306.schema.json",
+      browserPath: "/schemas/2306.schema.json"
     },
     "2550M": {
       nodePath: "./Documentation/SQL_to_JSON/2550M.schema.json",
@@ -68,19 +80,24 @@
   };
 
   const COLUMNS = {
-    tin: ["vendortin", "tinpayee", "payeetin", "taxpayeridentificationno", "vendort", "tin"],
-    branch: ["branchcode", "branchcodepayee", "vendorbranchcode", "branchco", "branch"],
-    registeredName: ["companyname", "registeredname", "vendorname", "corporationregisteredname", "corporation"],
+    tin: ["vendortin", "tinpayee", "payeetin", "taxpayeridentificationno", "taxpayerid", "taxid", "taxregistrationnumber", "vendortaxid", "entitytaxregno", "vendort", "tin"],
+    branch: ["branchcode", "branchcodepayee", "vendorbranchcode", "branchco", "branchcodeid", "branch"],
+    registeredName: ["companyname", "registeredname", "registeredlegalname", "vendorname", "suppliername", "payeename", "corporationregisteredname", "corporation", "legalentityname"],
     lastName: ["lastname", "surname", "surnames"],
     firstName: ["firstname", "givenname"],
     middleName: ["middlename", "middlenamepayee"],
-    atc: ["atc", "atccode"],
+    atc: ["atc", "atccode", "alphanumerictaxcode", "taxcode", "withholdingtaxcode"],
     nature: ["natureincome", "natureofincome", "natureofincomepayment"],
     income: ["incomepayment", "incomepaym", "incomepay", "taxbase", "amountofincomepayment"],
     rate: ["taxrate", "rateoftax", "ewtrate"],
     withheld: ["taxamount", "actualamtwithheld", "amountwithheld", "amountoftaxwithheld", "taxamou"],
     reportingMonth: ["reportingmonth", "returnperiod", "taxablemonth"]
   };
+
+  const ATC_REFERENCE = typeof module !== "undefined" && module.exports
+    ? require("./atc-reference")
+    : (typeof BIR_ATC_REFERENCE !== "undefined" ? BIR_ATC_REFERENCE : []);
+  const VALID_ATC_CODES = new Set(ATC_REFERENCE.map((entry) => entry.code));
 
   const REQUIRED_COLUMNS = [
     ["tin", "Vendor TIN"],
@@ -354,33 +371,96 @@
       .trim();
   }
 
-  function normalizeNumericId(value, label, width, errors, rowNumber) {
-    const raw = String(value ?? "").trim();
-    const normalized = raw.replace(/[\s-]/g, "");
+  function validateAtcTaxRate(atcValue, rateValue) {
+    const atc = cleanText(atcValue).toUpperCase();
+    return {
+      valid: VALID_ATC_CODES.has(atc),
+      atc,
+      expectedRate: null,
+      source: "Documentation/regatc.dbf"
+    };
+  }
 
-    if (!/^\d+$/.test(normalized)) {
+  function levenshteinDistance(left, right) {
+    if (left === right) return 0;
+    if (!left.length) return right.length;
+    if (!right.length) return left.length;
+    let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+    for (let leftIndex = 1; leftIndex <= left.length; leftIndex++) {
+      const current = [leftIndex];
+      for (let rightIndex = 1; rightIndex <= right.length; rightIndex++) {
+        current[rightIndex] = Math.min(
+          current[rightIndex - 1] + 1,
+          previous[rightIndex] + 1,
+          previous[rightIndex - 1] + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
+        );
+      }
+      previous = current;
+    }
+    return previous[right.length];
+  }
+
+  function getColumnSuggestions(headers, reportType) {
+    const normalizedHeaders = headers.map(normalizeHeader);
+    const columnMap = LEDGER_COLUMNS[reportType] || COLUMNS;
+    const requiredFields = reportType && LEDGER_COLUMNS[reportType]
+      ? getRequiredColumns(reportType)
+      : REQUIRED_COLUMNS.map(([field]) => field);
+    const suggestions = [];
+
+    for (const field of requiredFields) {
+      const aliases = columnMap[field];
+      if (!aliases) continue;
+      if (normalizedHeaders.some((header) => aliases.includes(header))) continue;
+
+      let best = null;
+      normalizedHeaders.forEach((header, index) => {
+        if (!header) return;
+        const distance = levenshteinDistance(header, field);
+        const normalizedDistance = Math.max(header.length, field.length);
+        const fieldMatches = aliases.map((alias) => levenshteinDistance(header, alias));
+        const minimumDistance = Math.min(distance, ...fieldMatches);
+        const denominator = Math.max(normalizedDistance, ...aliases.map((alias) => alias.length));
+        const confidence = 1 - (minimumDistance / denominator);
+        if (confidence >= 0.72 && (!best || confidence > best.confidence)) {
+          best = {
+            field,
+            sourceHeader: headers[index],
+            confidence: Number(confidence.toFixed(2))
+          };
+        }
+      });
+      if (best) suggestions.push(best);
+    }
+
+    return suggestions;
+  }
+
+  function normalizeNumericId(value, label, minWidth, maxWidth, errors, rowNumber) {
+    const raw = String(value ?? "").trim();
+
+    if (!/^\d+$/.test(raw)) {
       errors.push(`Row ${rowNumber}: ${label} must contain digits only.`);
       return "";
     }
 
-    if (normalized.length > width) {
-      errors.push(`Row ${rowNumber}: ${label} must be ${width} digits or fewer.`);
+    if (raw.length < minWidth || raw.length > maxWidth) {
+      errors.push(`Row ${rowNumber}: ${label} must contain ${minWidth === maxWidth ? minWidth : `${minWidth} to ${maxWidth}`} digits.`);
       return "";
     }
 
-    return normalized.padStart(width, "0");
+    return raw;
   }
 
   function normalizeTin(value, label, errors, rowNumber) {
     const raw = String(value ?? "").trim();
-    const normalized = raw.replace(/[\s-]/g, "");
 
-    if (!/^\d{1,9}$/.test(normalized)) {
-      errors.push(`Row ${rowNumber}: ${label} must contain no more than 9 digits.`);
+    if (!/^\d{9}$/.test(raw)) {
+      errors.push(`Row ${rowNumber}: ${label} must contain exactly 9 digits.`);
       return "";
     }
 
-    return normalized.padStart(9, "0");
+    return raw;
   }
 
   function parseAmount(value, label, errors, rowNumber, required, allowNegative = false) {
@@ -454,14 +534,15 @@
     return text;
   }
 
-  function fixedDigits(value, label, width, errors) {
-    const digits = String(value ?? "").replace(/[\s-]/g, "");
-    if (!new RegExp(`^\\d{1,${width}}$`).test(digits)) {
-      errors.push(`${label} must contain no more than ${width} digits.`);
+  function fixedDigits(value, label, minWidth, maxWidth, errors) {
+    const digits = String(value ?? "").trim();
+    if (!new RegExp(`^\\d{${minWidth},${maxWidth}}$`).test(digits)) {
+      const lengthRule = minWidth === maxWidth ? `exactly ${minWidth}` : `${minWidth} to ${maxWidth}`;
+      errors.push(`${label} must contain ${lengthRule} digits.`);
       return "";
     }
 
-    return digits.padStart(width, "0");
+    return digits;
   }
 
   function getRequiredColumns(reportType) {
@@ -525,6 +606,17 @@
     }
 
     const text = String(value ?? "").trim();
+    const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+    if (isoDate) {
+      const year = Number(isoDate[1]);
+      const month = Number(isoDate[2]);
+      const day = Number(isoDate[3]);
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
+        ? date
+        : null;
+    }
+
     const isoDateTime = /^\d{4}-\d{2}-\d{2}\s+\d{1,2}:\d{2}(?::\d{2})?(?:\s*(?:AM|PM))?$/i.exec(text);
     if (isoDateTime) {
       const normalized = text.replace(/\s+/, "T");
@@ -596,7 +688,9 @@
       return;
     }
     const rowPeriod = parseSourcePeriod(value);
-    if (rowPeriod && rowPeriod !== selectedPeriod.formatted) {
+    if (!rowPeriod) {
+      errors.push(`Row ${rowNumber}: Reporting Period must use MM/YYYY, MM/DD/YYYY, DD/MM/YYYY, or YYYY-MM-DD.`);
+    } else if (rowPeriod !== selectedPeriod.formatted) {
       errors.push(`Row ${rowNumber}: Reporting Period does not match the selected reporting period.`);
     }
   }
@@ -1106,9 +1200,9 @@
       errors.push("Choose a valid reporting month.");
     }
 
-    const agentTin = fixedDigits(agent?.tin, "Withholding agent TIN", 9, errors);
-    const agentBranch = fixedDigits(agent?.branch, "Withholding agent branch code", 4, errors);
-    const agentRdo = fixedDigits(agent?.rdo, "Withholding agent RDO code", 3, errors);
+    const agentTin = fixedDigits(agent?.tin, "Withholding agent TIN", 9, 9, errors);
+    const agentBranch = fixedDigits(agent?.branch, "Withholding agent branch code", 3, 4, errors);
+    const agentRdo = fixedDigits(agent?.rdo, "Withholding agent RDO code", 3, 3, errors);
     const agentName = metadataValue(agent?.name, "Withholding agent registered name", 50, errors);
 
     if (LEDGER_COLUMNS[reportType]) {
@@ -1157,7 +1251,7 @@
 
         const rowErrorsBefore = errors.length;
         const payeeTin = normalizeTin(values[columns.tin], "Vendor TIN", errors, rowNumber);
-        const payeeBranch = normalizeNumericId(values[columns.branch], "Branch Code", 4, errors, rowNumber);
+        const payeeBranch = normalizeNumericId(values[columns.branch], "Branch Code", 3, 4, errors, rowNumber);
         const name = cleanText(values[columns.registeredName]);
         const lastName = cleanText(values[columns.lastName]);
         const firstName = cleanText(values[columns.firstName]);
@@ -1187,9 +1281,22 @@
           errors.push(`Row ${rowNumber}: Tax Rate cannot exceed 99.99.`);
         }
 
+        if (atc) {
+          const atcRate = validateAtcTaxRate(atc, formatCents(rate));
+          if (!atcRate.valid) {
+            errors.push(`Row ${rowNumber}: ATC ${atcRate.atc} is not present in the BIR DAT validator ATC reference.`);
+          }
+        }
+
         if (columns.reportingMonth >= 0 && values[columns.reportingMonth] !== "" && values[columns.reportingMonth] !== undefined) {
           const rowPeriod = parseSourcePeriod(values[columns.reportingMonth]);
-          if (rowPeriod && rowPeriod !== selectedPeriod.formatted) {
+          if (!rowPeriod) {
+            errors.push(`Row ${rowNumber}: Reporting Month must use MM/YYYY, MM/DD/YYYY, DD/MM/YYYY, or YYYY-MM-DD.`);
+          } else if (reportType === "1601EQ" || reportType === "2550Q") {
+            if (!periodsInSameQuarter(rowPeriod, selectedPeriod.formatted)) {
+              errors.push(`Row ${rowNumber}: Reporting Month does not match the selected reporting quarter.`);
+            }
+          } else if (rowPeriod !== selectedPeriod.formatted) {
             errors.push(`Row ${rowNumber}: Reporting Month does not match the selected reporting period.`);
           }
         }
@@ -1339,12 +1446,40 @@
     };
   }
 
+  function periodsInSameQuarter(sourcePeriod, selectedPeriod) {
+    const sourceMatch = /^(\d{2})\/(\d{4})$/.exec(sourcePeriod);
+    const selectedMatch = /^(\d{2})\/(\d{4})$/.exec(selectedPeriod);
+    if (!sourceMatch || !selectedMatch) return false;
+    const sourceMonth = Number(sourceMatch[1]);
+    const sourceYear = Number(sourceMatch[2]);
+    const selectedMonth = Number(selectedMatch[1]);
+    const selectedYear = Number(selectedMatch[2]);
+    if (sourceYear !== selectedYear) return false;
+    return Math.floor((sourceMonth - 1) / 3) === Math.floor((selectedMonth - 1) / 3);
+  }
+
   function parseSourcePeriod(value) {
     if (value instanceof Date && !Number.isNaN(value.getTime())) {
       return `${String(value.getMonth() + 1).padStart(2, "0")}/${value.getFullYear()}`;
     }
 
+    if (typeof value === "number" && Number.isFinite(value)) {
+      const date = parseExcelDate(value);
+      if (date) {
+        return `${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`;
+      }
+    }
+
     const text = String(value ?? "").trim();
+    const isoDate = /^(\d{4})-(\d{2})-\d{2}$/.exec(text);
+    if (isoDate) {
+      const year = Number(isoDate[1]);
+      const month = Number(isoDate[2]);
+      if (month >= 1 && month <= 12) {
+        return `${String(month).padStart(2, "0")}/${year}`;
+      }
+    }
+
     const monthDayYear = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text);
     if (monthDayYear) {
       const month = Number(monthDayYear[1]) <= 12
@@ -1368,6 +1503,311 @@
     return null;
   }
 
+  // ---------------------------------------------------------------------------
+  // BIR report-layout source (formatted MAP / QAP / SAWT alphalist workbooks)
+  // ---------------------------------------------------------------------------
+
+  // Column headings printed on the BIR alphalist report layout, after removing
+  // the "(n)" column numbers and dash rules. Kept separate from COLUMNS so the
+  // data-only alias matching is unaffected.
+  const REPORT_LAYOUT_FIELDS = {
+    seq: ["seqno", "sequenceno", "seq"],
+    tin: ["taxpayeridentificationno", "taxpayeridentificationnumber", "tin"],
+    registeredName: ["corporationregisteredname", "corporation", "registeredname"],
+    individualName: ["individuallastnamefirstnamemiddlename", "individual"],
+    atc: ["atccode", "atc"],
+    nature: ["natureofincome", "natureofincomepayment"],
+    income: ["amountofincomepayment", "incomepayment"],
+    rate: ["taxrate"],
+    withheld: ["amountoftaxwithheld", "taxwithheld"]
+  };
+  const REPORT_LAYOUT_REQUIRED = ["tin", "registeredName", "individualName", "atc", "income", "rate", "withheld"];
+  const REPORT_LAYOUT_TYPES = ["1600VT", "1601EQ", "2550M", "2550Q"];
+  const REPORT_LAYOUT_TITLES = { MAP: ["1600VT"], QAP: ["1601EQ"], SAWT: ["2550M", "2550Q"] };
+  // Canonical headings emitted for buildDat; each resolves through COLUMNS.
+  const CANONICAL_HEADERS = [
+    ["tin", "Vendor TIN"],
+    ["branch", "Branch Code"],
+    ["registeredName", "Company Name"],
+    ["lastName", "Last Name"],
+    ["firstName", "First Name"],
+    ["middleName", "Middle Name"],
+    ["atc", "ATC"],
+    ["nature", "Nature of Income"],
+    ["income", "Income Payment"],
+    ["rate", "Tax Rate"],
+    ["withheld", "Tax Amount"]
+  ];
+
+  function normalizeReportHeader(value) {
+    return normalizeHeader(String(value ?? "").replace(/\(\s*\d+\s*\)/g, "").replace(/-{2,}/g, ""));
+  }
+
+  function isBlankCell(value) {
+    return value === null || value === undefined || String(value).trim() === "";
+  }
+
+  // Splits "XXX-XXX-XXX" or "XXX-XXX-XXX-BBB(B)" (dashes optional). Returns
+  // null when the value does not match that strict pattern; nothing is guessed.
+  function splitTinBranch(value) {
+    const text = String(value ?? "").trim();
+    const match = /^(\d{3})-?(\d{3})-?(\d{3})(?:-?(\d{3,4}))?$/.exec(text);
+    if (!match) return null;
+    return { tin: `${match[1]}${match[2]}${match[3]}`, branch: match[4] ?? "" };
+  }
+
+  function amountToCents(value) {
+    if (isBlankCell(value)) return 0;
+    const number = typeof value === "number" ? value : Number(String(value).replace(/[,\s₱$]/g, ""));
+    if (!Number.isFinite(number)) return null;
+    return Math.sign(number) * Math.round((Math.abs(number) + Number.EPSILON) * 100);
+  }
+
+  /**
+   * Reads a formatted BIR alphalist report (title block, numbered header row,
+   * detail rows, Grand Total, footer) and returns a canonical source for buildDat.
+   *
+   * @param {Array<Array>} matrix  sheet_to_json(..., { header: 1, blankrows: true }) output
+   * @param {object} [options]
+   * @param {Array} [options.merges]   merged ranges ({ s: {r,c}, e: {r,c} }) relative to the matrix
+   * @param {number} [options.rowOffset] sheet row index of matrix[0] (0 when the sheet starts at A1)
+   * @param {string} [options.reportType] selected report, used for layout/title checks
+   */
+  function extractReportLayout(matrix, options = {}) {
+    const merges = Array.isArray(options.merges) ? options.merges : [];
+    const rowOffset = Number(options.rowOffset) || 0;
+    const reportType = options.reportType || "";
+    const errors = [];
+    const warnings = [];
+    const notes = [];
+    const empty = { headers: [], rows: [], rowNumbers: [], metadata: {}, errors, warnings, notes, reconciliation: null };
+    const sheetRow = (index) => index + rowOffset + 1;
+
+    if (reportType && !REPORT_LAYOUT_TYPES.includes(reportType)) {
+      errors.push("BIR report layout mode supports the MAP (1600VT), QAP (1601EQ) and SAWT (2550M/2550Q) reports only. Use data-only mode for Books of Accounts.");
+      return empty;
+    }
+
+    // 1. Locate the header row: the first row that names every required BIR column.
+    let headerIndex = -1;
+    let spans = null;
+    for (let index = 0; index < Math.min(matrix.length, 40) && headerIndex < 0; index++) {
+      const row = Array.isArray(matrix[index]) ? matrix[index] : [];
+      const found = {};
+      row.forEach((cell, column) => {
+        const normalized = normalizeReportHeader(cell);
+        if (!normalized) return;
+        for (const [field, aliases] of Object.entries(REPORT_LAYOUT_FIELDS)) {
+          if (found[field] === undefined && aliases.includes(normalized)) {
+            found[field] = column;
+            break;
+          }
+        }
+      });
+      if (REPORT_LAYOUT_REQUIRED.every((field) => found[field] !== undefined)) {
+        headerIndex = index;
+        spans = found;
+      }
+    }
+
+    if (headerIndex < 0) {
+      errors.push("No BIR alphalist header row was found. Expected the columns: Taxpayer Identification No., Corporation (Registered Name), Individual (Last Name, First Name, Middle Name), ATC Code, Amount of Income Payment, Tax Rate and Amount of Tax Withheld.");
+      return empty;
+    }
+
+    // Column span of each header (merged header cells cover several columns).
+    let headerEnd = headerIndex;
+    const fieldSpans = {};
+    for (const [field, column] of Object.entries(spans)) {
+      const merge = merges.find((range) => range.s.r === headerIndex && range.s.c === column);
+      fieldSpans[field] = merge ? [merge.s.c, merge.e.c] : [column, column];
+      if (merge) headerEnd = Math.max(headerEnd, merge.e.r);
+    }
+    const spanOf = (column) => Object.keys(fieldSpans)
+      .find((field) => column >= fieldSpans[field][0] && column <= fieldSpans[field][1]);
+    const readField = (row, field) => {
+      if (!fieldSpans[field]) return "";
+      const [start, end] = fieldSpans[field];
+      for (let column = start; column <= end; column++) {
+        if (!isBlankCell(row[column])) return row[column];
+      }
+      return "";
+    };
+
+    // 2. Title block above the header: agent TIN / name and the report title.
+    const metadata = {};
+    for (let index = 0; index < headerIndex; index++) {
+      for (const cell of matrix[index] || []) {
+        const text = String(cell ?? "");
+        const tinMatch = /\bTIN\s*:\s*([\d-]+)/i.exec(text);
+        if (tinMatch && !metadata.agentTin) {
+          const parts = splitTinBranch(tinMatch[1]);
+          if (parts) {
+            metadata.agentTin = parts.tin;
+            if (parts.branch) metadata.agentBranch = parts.branch;
+          } else {
+            warnings.push(`Row ${sheetRow(index)}: the withholding agent TIN in the report title is not in XXX-XXX-XXX-BBBB form and was not pre-filled.`);
+          }
+        }
+        const nameMatch = /WITHHOLDING\s+AGENT'?S\s+NAME\s*:\s*(.+)/i.exec(text);
+        if (nameMatch && !metadata.agentName) metadata.agentName = nameMatch[1].trim();
+        const titleMatch = /\((MAP|QAP|SAWT)\)/i.exec(text);
+        if (titleMatch && !metadata.reportTitle) metadata.reportTitle = titleMatch[1].toUpperCase();
+      }
+    }
+    if (metadata.reportTitle && reportType && !REPORT_LAYOUT_TITLES[metadata.reportTitle].includes(reportType)) {
+      warnings.push(`The workbook title says ${metadata.reportTitle}, but the selected report is ${reportType}. Confirm that the correct report was selected.`);
+    }
+
+    // 3. Detail block: rows after the header until Grand Total / END OF REPORT / Printed.
+    const stopPattern = /grand\s*total|end\s+of\s+report|^\s*printed\s*:/i;
+    let stopIndex = matrix.length;
+    for (let index = headerEnd + 1; index < matrix.length; index++) {
+      if ((matrix[index] || []).some((cell) => stopPattern.test(String(cell ?? "")))) {
+        stopIndex = index;
+        break;
+      }
+    }
+    if (stopIndex === matrix.length) {
+      warnings.push("No Grand Total / END OF REPORT row was found; every row after the header was read as detail data.");
+    } else if (matrix.length - stopIndex > 0) {
+      notes.push(`Rows ${sheetRow(stopIndex)}-${sheetRow(matrix.length - 1)} (Grand Total and report footer) were read for reconciliation only and are not detail records.`);
+    }
+
+    const headers = CANONICAL_HEADERS.map(([, label]) => label);
+    const rows = [];
+    const rowNumbers = [];
+    const misaligned = new Set();
+    let blankCount = 0;
+    let totalIncome = 0;
+    let totalWithheld = 0;
+    let amountsReadable = true;
+
+    for (let index = headerEnd + 1; index < stopIndex; index++) {
+      const raw = Array.isArray(matrix[index]) ? matrix[index] : [];
+      if (raw.every(isBlankCell)) {
+        blankCount++;
+        continue;
+      }
+      const rowNumber = sheetRow(index);
+
+      raw.forEach((cell, column) => {
+        if (!isBlankCell(cell) && !spanOf(column)) misaligned.add(column);
+      });
+
+      const tinCell = readField(raw, "tin");
+      const tinParts = splitTinBranch(tinCell);
+      const individual = String(readField(raw, "individualName") ?? "").trim();
+      const corporation = readField(raw, "registeredName");
+
+      if (!tinParts) {
+        errors.push(`Row ${rowNumber}: Taxpayer Identification No. must be in XXX-XXX-XXX-BBBB form (9-digit TIN plus 3-4 digit branch code).`);
+      } else if (!tinParts.branch) {
+        errors.push(`Row ${rowNumber}: Taxpayer Identification No. has no branch code suffix; the branch code is required and is not assumed.`);
+      }
+      if (individual) {
+        errors.push(`Row ${rowNumber}: the Individual payee name is in one combined column. Separate Last, First and Middle names are required; the name is not split automatically. Use data-only mode with separate name columns.`);
+      } else if (isBlankCell(corporation)) {
+        errors.push(`Row ${rowNumber}: the payee has neither a Corporation (Registered Name) nor an Individual name.`);
+      }
+
+      const income = readField(raw, "income");
+      const withheld = readField(raw, "withheld");
+      const incomeCents = amountToCents(income);
+      const withheldCents = amountToCents(withheld);
+      if (incomeCents === null || withheldCents === null) {
+        amountsReadable = false;
+      } else {
+        totalIncome += incomeCents;
+        totalWithheld += withheldCents;
+      }
+
+      const canonical = {
+        tin: tinParts ? tinParts.tin : tinCell,
+        branch: tinParts ? tinParts.branch : "",
+        registeredName: individual ? "" : corporation,
+        lastName: "",
+        firstName: "",
+        middleName: "",
+        atc: readField(raw, "atc"),
+        nature: readField(raw, "nature"),
+        income,
+        rate: readField(raw, "rate"),
+        withheld
+      };
+      rows.push(CANONICAL_HEADERS.map(([field]) => canonical[field]));
+      rowNumbers.push(rowNumber);
+    }
+
+    if (misaligned.size) {
+      // Field values were read from the wrong columns, so row-level messages
+      // would be misleading; report only the alignment problem.
+      const letters = [...misaligned].sort((a, b) => a - b).map(columnLetter);
+      errors.length = 0;
+      errors.push(`Detail values were found in column(s) ${letters.join(", ")}, which sit under no BIR column heading. The header row does not line up with the data, so columns cannot be mapped reliably. Align the headings with the data or use data-only mode.`);
+      return { ...empty, metadata, rows: [], headers: [], notes };
+    }
+    if (blankCount) {
+      notes.push(`${blankCount} blank row(s) inside the detail block were ignored.`);
+    }
+    if (!rows.length) {
+      errors.push("No detail rows were found between the BIR header row and the Grand Total.");
+    }
+
+    // 4. Grand Total reconciliation.
+    let reconciliation = null;
+    const totalRow = stopIndex < matrix.length && /grand\s*total/i.test((matrix[stopIndex] || []).join(" "))
+      ? matrix[stopIndex]
+      : null;
+    if (!totalRow) {
+      warnings.push("No Grand Total row was found, so detail totals could not be reconciled with the report.");
+    } else if (amountsReadable) {
+      let reportIncome = amountToCents(readField(totalRow, "income"));
+      let reportWithheld = amountToCents(readField(totalRow, "withheld"));
+      let method = "column";
+      if (!reportIncome && !reportWithheld) {
+        // Printed totals that do not sit under their columns: first two numbers, in report order.
+        const numbers = totalRow.filter((cell) => typeof cell === "number" ||
+          (!isBlankCell(cell) && /^[\d,]+(\.\d+)?$/.test(String(cell).trim())));
+        if (numbers.length === 2) {
+          reportIncome = amountToCents(numbers[0]);
+          reportWithheld = amountToCents(numbers[1]);
+          method = "order";
+        } else {
+          reportIncome = null;
+        }
+      }
+      if (reportIncome === null || reportWithheld === null) {
+        warnings.push(`Row ${sheetRow(stopIndex)}: the Grand Total amounts could not be read, so detail totals were not reconciled.`);
+      } else {
+        reconciliation = {
+          method,
+          reportIncome: formatCents(reportIncome),
+          reportWithheld: formatCents(reportWithheld),
+          detailIncome: formatCents(totalIncome),
+          detailWithheld: formatCents(totalWithheld),
+          matches: reportIncome === totalIncome && reportWithheld === totalWithheld
+        };
+        if (!reconciliation.matches) {
+          errors.push(`Grand Total mismatch: the report shows income ${reconciliation.reportIncome} / tax withheld ${reconciliation.reportWithheld}, but the detail rows add up to ${reconciliation.detailIncome} / ${reconciliation.detailWithheld}.`);
+        }
+      }
+    }
+
+    return { headers, rows, rowNumbers, metadata, errors, warnings, notes, reconciliation };
+  }
+
+  function columnLetter(index) {
+    let label = "";
+    let value = index + 1;
+    while (value > 0) {
+      const remainder = (value - 1) % 26;
+      label = String.fromCharCode(65 + remainder) + label;
+      value = Math.floor((value - 1) / 26);
+    }
+    return label;
+  }
+
   async function getJsonSchema(schemaId) {
     if (!Object.prototype.hasOwnProperty.call(JSON_SCHEMAS, schemaId)) {
       throw new Error(`Unsupported JSON schema: ${schemaId}`);
@@ -1387,13 +1827,22 @@
 
   return {
     REPORTS,
+    VALID_ATC_CODES,
     buildDat,
+    CANONICAL_HEADERS,
     cleanText,
+    extractReportLayout,
     findColumns,
+    getColumnSuggestions,
     getJsonSchema,
     getMissingColumns,
     getRequiredColumns,
+    levenshteinDistance,
     normalizeHeader,
-    parsePeriod
+    parseExcelDate,
+    parsePeriod,
+    parseSourcePeriod,
+    splitTinBranch,
+    validateAtcTaxRate
   };
 });

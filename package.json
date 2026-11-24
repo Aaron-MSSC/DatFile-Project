@@ -5,7 +5,9 @@
   "description": "Browser-based Excel to BIR DAT converter",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "start:dev": "node --env-file-if-exists=.env server.js",
+    "test": "node --test",
+    "generate:atc": "node scripts/generate-atc-reference.js"
   },
   "dependencies": {
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

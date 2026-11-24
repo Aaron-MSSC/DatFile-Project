@@ -3,91 +3,233 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#090d2b">
-    <title>Excel to DAT Converter</title>
+    <meta name="theme-color" content="#0b1530">
+    <title>DAT File Converter · CoreSeed</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%232bb673' d='M23 30C14 30 7 24 6 13c9 0 16 5 17 17zM25 30c9 0 16-6 17-17-9 0-16 5-17 17z'/%3E%3Cpath fill='%232a9fd6' d='M24 30c-6-5-7-14 0-24 7 10 6 19 0 24z'/%3E%3Cpath fill='%231fb5a3' d='M24 34c2 3 3 5 3 7a3 3 0 0 1-6 0c0-2 1-4 3-7z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="/styles.css">
     <script defer src="/vendor/xlsx.full.min.js"></script>
     <script defer src="/auth-client.js"></script>
+    <script defer src="/atc-reference.js"></script>
     <script defer src="/converter.js"></script>
+    <script defer src="/source-adapters.js"></script>
+    <script defer src="/sap-withholding.js"></script>
+    <script defer src="/ui-helpers.js"></script>
     <script defer src="/app.js"></script>
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="DAT Converter home">
-        <span class="brand-mark" aria-hidden="true">D</span>
-        <span>DAT Converter</span>
-      </a>
-      <div class="topbar-account">
-        <span id="account-status" class="privacy-note"><span class="privacy-dot"></span> Files stay on this device</span>
-        <button id="logout-button" class="text-button hidden" type="button">Sign out</button>
-      </div>
-    </header>
+    <!-- Inline icon sprite (line icons, currentColor) -->
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-convert" viewBox="0 0 24 24"><path d="M4 7h13l-3-3M20 17H7l3 3"/></symbol>
+      <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c2 .7 3.2 2.4 3.6 5.2"/></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v6c0 4.4 3.1 7.6 7.5 9 4.4-1.4 7.5-4.6 7.5-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+      <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></symbol>
+      <symbol id="i-rows" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17.5v.01"/></symbol>
+      <symbol id="i-sum" viewBox="0 0 24 24"><path d="M18 5H6l6 7-6 7h12"/></symbol>
+      <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+      <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7" rx="1"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+      <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></symbol>
+      <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+      <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+      <symbol id="i-device" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+      <!-- Placeholder CoreSeed mark: replace with the official logo asset when provided. -->
+      <symbol id="coreseed-mark" viewBox="0 0 48 48">
+        <path class="leaf-side" fill="#2bb673" d="M23 30C14 30 7 24 6 13c9 0 16 5 17 17z"/>
+        <path class="leaf-side" fill="#2bb673" d="M25 30c9 0 16-6 17-17-9 0-16 5-17 17z"/>
+        <path class="leaf-center" fill="#2a9fd6" d="M24 30c-6-5-7-14 0-24 7 10 6 19 0 24z"/>
+        <path class="leaf-drop" fill="#1fb5a3" d="M24 34c2 3 3 5 3 7a3 3 0 0 1-6 0c0-2 1-4 3-7z"/>
+      </symbol>
+    </svg>
 
-    <main class="page-shell">
-      <section id="auth-view" class="auth-card" aria-labelledby="auth-title">
-        <p class="eyebrow">DAT CONVERTER ACCOUNT</p>
-        <h1 id="auth-title">Welcome</h1>
-        <p class="intro-copy">Sign in to continue, or create an account to get started.</p>
-        <div class="auth-tabs" role="tablist" aria-label="Account action">
-          <button class="auth-tab is-active" type="button" role="tab" aria-selected="true" data-auth-mode="login">Sign in</button>
-          <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="register">Create account</button>
+    <!-- ===================== Sign-in screen ===================== -->
+    <div class="auth-screen">
+      <section id="auth-view" class="auth-panel" aria-labelledby="auth-title">
+        <div class="auth-panel-body">
+          <div class="logo logo-small logo-inverse" aria-label="CoreSeed DAT Converter">
+            <svg class="logo-mark" aria-hidden="true"><use href="#coreseed-mark"/></svg>
+            <span class="logo-text"><span class="logo-word">CORESEED</span><span class="logo-sub">DAT Converter</span></span>
+          </div>
+          <h1 id="auth-title">Welcome back</h1>
+          <p class="auth-subtitle">Sign in to the BIR DAT File Converter.</p>
+          <div class="auth-tabs" role="tablist" aria-label="Account action">
+            <button class="auth-tab is-active" type="button" role="tab" aria-selected="true" data-auth-mode="login">Sign in</button>
+            <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="register">Create account</button>
+            <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="recover">Recover</button>
+          </div>
+          <form id="auth-form" novalidate>
+            <div id="account-name-field" class="field auth-field hidden">
+              <label for="account-name">Name</label>
+              <div class="input-icon"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg>
+                <input id="account-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
+              </div>
+            </div>
+            <div class="field auth-field">
+              <label for="account-email">Email Address</label>
+              <div class="input-icon"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>
+                <input id="account-email" type="email" maxlength="254" autocomplete="email" required placeholder="you@company.com">
+              </div>
+            </div>
+            <div id="recovery-token-field" class="field auth-field hidden">
+              <label for="recovery-token">Recovery Token</label>
+              <div class="input-icon"><svg class="icon" aria-hidden="true"><use href="#i-key"/></svg>
+                <input id="recovery-token" type="text" maxlength="64" autocomplete="off" placeholder="Paste 48-character recovery token">
+              </div>
+              <span class="field-hint">Obtain a token with the Request recovery token button below.</span>
+            </div>
+            <div id="password-field-wrap" class="field auth-field">
+              <label for="account-password">Password</label>
+              <div class="input-icon"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>
+                <input id="account-password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required>
+              </div>
+              <span id="password-hint" class="field-hint hidden">At least 12 characters with uppercase, lowercase, numbers, and symbols.</span>
+            </div>
+            <div id="confirm-password-field" class="field auth-field hidden">
+              <label for="confirm-password">Confirm password</label>
+              <div class="input-icon"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>
+                <input id="confirm-password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
+              </div>
+            </div>
+            <label class="show-password-control">
+              <input id="show-password" type="checkbox">
+              <span>Show password</span>
+            </label>
+            <div id="auth-error" class="error-message hidden" role="alert"></div>
+            <div id="auth-info" class="info-message hidden" role="status"></div>
+            <div class="auth-actions">
+              <button id="auth-submit" class="gradient-button auth-submit" type="submit">Sign in</button>
+              <button id="recover-request-button" class="ghost-button hidden" type="button">Request recovery token</button>
+            </div>
+            <button id="trouble-signing-in" class="auth-help-link" type="button">Having trouble signing in?</button>
+          </form>
         </div>
-        <form id="auth-form" novalidate>
-          <div id="account-name-field" class="field auth-field hidden">
-            <label for="account-name">Name</label>
-            <input id="account-name" type="text" maxlength="80" autocomplete="name" placeholder="Your name">
-          </div>
-          <div class="field auth-field">
-            <label for="account-email">Email</label>
-            <input id="account-email" type="email" maxlength="254" autocomplete="email" required placeholder="you@example.com">
-          </div>
-          <div class="field auth-field">
-            <label for="account-password">Password</label>
-            <input id="account-password" type="password" minlength="12" maxlength="128" autocomplete="current-password" required>
-            <span class="field-hint">Use at least 12 characters.</span>
-          </div>
-          <div id="confirm-password-field" class="field auth-field hidden">
-            <label for="confirm-password">Confirm password</label>
-            <input id="confirm-password" type="password" minlength="12" maxlength="128" autocomplete="new-password">
-          </div>
-          <label class="show-password-control">
-            <input id="show-password" type="checkbox">
-            <span>Show password</span>
-          </label>
-          <div id="auth-error" class="error-message hidden" role="alert"></div>
-          <button id="auth-submit" class="primary-button auth-submit" type="submit">Sign in</button>
-        </form>
+        <footer class="auth-panel-footer">© Mustard Seed Systems Corporation</footer>
       </section>
+      <aside class="auth-brand" aria-hidden="true">
+        <svg class="auth-brand-mark"><use href="#coreseed-mark"/></svg>
+        <span class="auth-brand-word">CORESEED</span>
+        <span class="auth-brand-sub">DAT Converter</span>
+        <p class="auth-brand-tagline">BIR-ready DAT files from your Excel workbooks and business systems.</p>
+        <span class="auth-brand-rule"></span>
+        <span class="auth-brand-eyebrow">A PRODUCT OF</span>
+        <strong class="auth-brand-company">Mustard Seed Systems Corporation</strong>
+      </aside>
+    </div>
 
+    <!-- ===================== Application shell ===================== -->
+    <div class="app-shell">
+      <aside id="sidebar" class="sidebar" aria-label="Sidebar">
+        <a class="logo sidebar-logo" href="/" aria-label="CoreSeed DAT Converter home">
+          <svg class="logo-mark" aria-hidden="true"><use href="#coreseed-mark"/></svg>
+          <span class="logo-text"><span class="logo-word">CORESEED</span><span class="logo-sub">DAT Converter</span></span>
+        </a>
+        <div class="workspace-card">
+          <span class="workspace-dot" aria-hidden="true"></span>
+          <span class="workspace-text">
+            <span class="workspace-label">Workspace</span>
+            <span class="workspace-name">DAT File Converter <span class="pill pill-amber">Standalone</span></span>
+          </span>
+        </div>
+        <nav id="topbar-nav" class="sidebar-nav hidden" aria-label="Main Navigation">
+          <div class="nav-group" data-nav-group>
+            <span class="nav-group-label">Overview</span>
+            <button id="nav-btn-converter" class="nav-item is-active" type="button" data-nav-target="converter-view">
+              <svg class="icon" aria-hidden="true"><use href="#i-convert"/></svg><span class="nav-label">Converter</span>
+            </button>
+          </div>
+          <div class="nav-group" data-nav-group>
+            <span class="nav-group-label">History</span>
+            <button id="nav-btn-exports" class="nav-item" type="button" data-nav-target="exports-view">
+              <svg class="icon" aria-hidden="true"><use href="#i-history"/></svg><span class="nav-label">Recent Exports</span>
+            </button>
+          </div>
+          <div class="nav-group" data-nav-group>
+            <span class="nav-group-label">Administration</span>
+            <button id="nav-btn-admin" class="nav-item hidden" type="button" data-nav-target="admin-view">
+              <svg class="icon" aria-hidden="true"><use href="#i-users"/></svg><span class="nav-label">Users</span>
+            </button>
+            <button id="nav-btn-audit" class="nav-item hidden" type="button" data-nav-target="audit-view">
+              <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span class="nav-label">Audit Trail</span>
+            </button>
+            <button id="nav-btn-status" class="nav-item hidden" type="button" data-nav-target="status-view">
+              <svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg><span class="nav-label">System Status</span>
+            </button>
+          </div>
+        </nav>
+        <div class="sidebar-user">
+          <span id="sidebar-avatar" class="avatar" aria-hidden="true"></span>
+          <span class="sidebar-user-text">
+            <span id="account-status" class="sidebar-user-name">Signed out</span>
+            <span id="user-role-badge" class="role-badge hidden"></span>
+          </span>
+          <button id="logout-button" class="icon-button hidden" type="button" aria-label="Sign out" title="Sign out">
+            <svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg>
+          </button>
+        </div>
+      </aside>
+      <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+      <div class="app-main">
+        <header class="topbar">
+          <button id="menu-toggle" class="icon-button menu-toggle" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+            <svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg>
+          </button>
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <span class="breadcrumb-root">DAT File Converter</span>
+            <span class="breadcrumb-sep" aria-hidden="true">/</span>
+            <span id="breadcrumb-current" class="breadcrumb-current" aria-current="page">Converter</span>
+          </nav>
+          <div class="topbar-right">
+            <span class="privacy-note"><svg class="icon" aria-hidden="true"><use href="#i-device"/></svg> Files stay on this device</span>
+            <span id="user-avatar" class="avatar avatar-small" aria-hidden="true"></span>
+          </div>
+        </header>
+
+        <main class="page-shell">
       <div id="converter-view" class="hidden">
-      <section class="intro">
-        <p class="eyebrow">BIR ALPHALIST EXPORT</p>
-        <h1>Convert your <span>Excel</span><br>file easily</h1>
-        <p class="intro-copy">Turn your report workbook into a validator-ready DAT file, right in your browser.</p>
-      </section>
+      <header class="page-header">
+        <p class="page-eyebrow">BIR Compliance · DAT Export</p>
+        <h1>DAT File Converter</h1>
+        <p class="page-description">Turn BIR forms, alphalists and books of accounts into validator-ready DAT files. Conversion runs in your browser.</p>
+      </header>
 
       <form id="converter-form" novalidate>
         <nav class="wizard-tracker" aria-label="Conversion progress">
+          <div class="wizard-compact" aria-hidden="true">
+            <span id="wizard-compact-label">Step 1 of 5 · Select form</span>
+            <span class="wizard-compact-bar"><span id="wizard-compact-fill" class="wizard-compact-fill"></span></span>
+          </div>
           <ol id="wizard-steps">
             <li class="wizard-step is-current" data-wizard-indicator="1">
               <span class="wizard-step-number">1</span>
-              <span class="wizard-step-label">Select report</span>
+              <span class="wizard-step-label">Select form</span>
             </li>
             <li class="wizard-step" data-wizard-indicator="2">
               <span class="wizard-step-number">2</span>
-              <span class="wizard-step-label">Upload Excel</span>
+              <span class="wizard-step-label">Upload &amp; worksheet</span>
             </li>
             <li class="wizard-step" data-wizard-indicator="3">
               <span class="wizard-step-number">3</span>
-              <span class="wizard-step-label">Report period</span>
+              <span class="wizard-step-label">Metadata</span>
             </li>
             <li class="wizard-step" data-wizard-indicator="4">
               <span class="wizard-step-number">4</span>
-              <span class="wizard-step-label">Agent details</span>
+              <span class="wizard-step-label">Pre-flight review</span>
             </li>
             <li class="wizard-step" data-wizard-indicator="5">
               <span class="wizard-step-number">5</span>
-              <span class="wizard-step-label">Preview &amp; download</span>
+              <span class="wizard-step-label">Export</span>
             </li>
           </ol>
         </nav>
@@ -262,16 +404,72 @@
           <div class="section-heading">
             <span class="step-number">02</span>
             <div>
-              <h2 id="upload-title">Choose an Excel workbook</h2>
-              <p>Use an <strong>.xlsx</strong> file. Legacy .xls files are not supported.</p>
+              <h2 id="upload-title">Choose your source data</h2>
+              <p id="upload-hint">Use an <strong>.xlsx</strong> file with one header row followed by data rows. Legacy .xls files are not supported.</p>
             </div>
           </div>
+          <fieldset class="report-category source-mode">
+            <legend>Source mode</legend>
+            <div class="report-card-grid">
+              <label class="report-option is-selected">
+                <input type="radio" name="source-mode" value="data-only" checked>
+                <span class="report-option-content">
+                  <span class="report-code">Excel · Data only</span>
+                  <strong>Plain data sheet</strong>
+                  <span class="report-description">One header row, then data rows. Columns are matched by heading name.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="source-mode" value="bir-report">
+                <span class="report-option-content">
+                  <span class="report-code">Excel · BIR report layout</span>
+                  <strong>Formatted MAP / QAP / SAWT</strong>
+                  <span class="report-description">Printed alphalist with title, numbered headings and Grand Total. Totals are reconciled.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="source-mode" value="sql-json">
+                <span class="report-option-content">
+                  <span class="report-code">Data pull · SQL→JSON</span>
+                  <strong>System result file</strong>
+                  <span class="report-description">The formType/details JSON produced by the SQL-to-JSON contract.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+              <label class="report-option">
+                <input type="radio" name="source-mode" value="sap-pull">
+                <span class="report-option-content">
+                  <span class="report-code">Data pull · SAP Business One</span>
+                  <strong>Pull withholding tax</strong>
+                  <span class="report-description">Read AP/AR invoices and credit memos for the period through the BIR API Integration service.</span>
+                </span>
+                <span class="report-check" aria-hidden="true">✓</span>
+              </label>
+            </div>
+          </fieldset>
           <label class="dropzone" id="dropzone" for="workbook-file">
             <span class="upload-icon" aria-hidden="true">↑</span>
-            <span class="drop-title">Drop your workbook here</span>
+            <span class="drop-title" id="drop-title">Drop your workbook here</span>
             <span class="drop-subtitle">or <span class="browse-link">browse files</span></span>
             <input id="workbook-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
           </label>
+          <div id="sap-pull-panel" class="sap-pull-panel hidden">
+            <p id="sap-connection-status" class="field-hint" aria-live="polite">Checking the SAP Business One connection…</p>
+            <div class="sap-pull-controls">
+              <div class="field compact-field">
+                <label for="sap-pull-period">Reporting month</label>
+                <input id="sap-pull-period" type="month">
+                <span class="field-hint">Quarterly reports pull the whole calendar quarter of this month.</span>
+              </div>
+              <button id="sap-pull-button" class="secondary-button" type="button" disabled>Pull from SAP</button>
+            </div>
+            <div id="sap-documents" class="table-wrap hidden">
+              <p id="sap-documents-summary" class="field-hint"></p>
+              <table id="sap-documents-table" class="sap-documents-table"></table>
+            </div>
+          </div>
           <p id="file-status" class="file-status" aria-live="polite">No workbook selected</p>
           <div id="worksheet-control" class="field compact-field hidden">
             <label for="worksheet">Worksheet</label>
@@ -283,33 +481,26 @@
           <div class="section-heading">
             <span class="step-number">03</span>
             <div>
-              <h2 id="period-title">Report period</h2>
-              <p>Select the reporting month for this workbook.</p>
+              <h2 id="period-title">Metadata</h2>
+              <p>Set the return period and the withholding agent written to the file header and filename.</p>
             </div>
           </div>
-          <div class="field">
-            <label for="reporting-period">Return period</label>
-            <input id="reporting-period" type="month" required>
-            <span class="field-hint">Written to the DAT records as MM/YYYY.</span>
-          </div>
-        </section>
-
-        <section class="card wizard-stage hidden" data-wizard-stage="4" aria-labelledby="agent-title">
-          <div class="section-heading">
-            <span class="step-number">04</span>
-            <div>
-              <h2 id="agent-title">Withholding agent</h2>
-              <p>These details are written to the file header and output filename.</p>
+          <div class="form-grid form-grid-period">
+            <div class="field">
+              <label for="reporting-period">Return period <span class="required-mark">*</span></label>
+              <input id="reporting-period" type="month" required>
+              <span class="field-hint">Written to the DAT records as MM/YYYY.</span>
             </div>
           </div>
+          <h3 id="agent-title" class="subsection-title">Withholding agent</h3>
           <div class="form-grid form-grid-agent">
             <div class="field">
               <label for="agent-tin">TIN <span class="required-mark">*</span></label>
-              <input id="agent-tin" type="text" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="9 digits" required>
+              <input id="agent-tin" type="text" inputmode="numeric" autocomplete="off" maxlength="9" placeholder="9 digits" required>
             </div>
             <div class="field">
               <label for="agent-branch">Branch code <span class="required-mark">*</span></label>
-              <input id="agent-branch" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="4 digits" required>
+              <input id="agent-branch" type="text" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="3 or 4 digits" required>
             </div>
             <div class="field">
               <label for="agent-rdo">RDO code <span class="required-mark">*</span></label>
@@ -322,27 +513,89 @@
           </div>
         </section>
 
-        <section id="preview-card" class="card preview-card wizard-stage hidden" data-wizard-stage="5" aria-labelledby="preview-title">
-          <div class="section-heading preview-heading">
-            <span class="step-number">05</span>
-            <div>
-              <h2 id="preview-title">Source data preview</h2>
-              <p id="preview-summary">Review the worksheet before creating the DAT file.</p>
-            </div>
+        <section id="preview-card" class="wizard-stage preflight hidden" data-wizard-stage="4" aria-labelledby="preview-title">
+          <div class="section-intro">
+            <p class="section-eyebrow">Pre-flight review</p>
+            <h2 id="preview-title">Validate before you generate</h2>
+            <p id="preview-summary" class="section-sub">Review the worksheet before creating the DAT file.</p>
           </div>
-          <div class="table-wrap">
-            <table id="preview-table"></table>
+          <div id="preflight-cards" class="stat-grid">
+            <article class="stat-card">
+              <span class="stat-icon tint-indigo" aria-hidden="true"><svg class="icon"><use href="#i-rows"/></svg></span>
+              <strong id="stat-total-rows" class="stat-value">0</strong>
+              <span class="stat-caption">Total Rows</span>
+            </article>
+            <article class="stat-card">
+              <span class="stat-icon tint-green" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+              <strong id="stat-valid-records" class="stat-value">0</strong>
+              <span id="stat-valid-caption" class="stat-caption">Valid Records</span>
+            </article>
+            <article id="stat-errors-card" class="stat-card">
+              <span class="stat-icon tint-red" aria-hidden="true"><svg class="icon"><use href="#i-alert"/></svg></span>
+              <strong id="stat-errors" class="stat-value">0</strong>
+              <span class="stat-caption">Errors Flagged</span>
+            </article>
+            <article class="stat-card stat-card-totals">
+              <span class="stat-icon tint-amber" aria-hidden="true"><svg class="icon"><use href="#i-sum"/></svg></span>
+              <dl id="stat-totals" class="stat-totals"></dl>
+              <span id="stat-totals-caption" class="stat-caption">Control Totals</span>
+            </article>
           </div>
           <div id="column-status" class="column-status" aria-live="polite"></div>
+          <div class="card grid-card">
+            <div class="grid-toolbar">
+              <div class="segmented" role="group" aria-label="Rows shown">
+                <button class="segmented-item is-active" type="button" data-grid-filter="all">All rows</button>
+                <button class="segmented-item" type="button" data-grid-filter="errors">Rows with errors <span id="grid-error-rows" class="segmented-count">0</span></button>
+              </div>
+              <div class="grid-pager">
+                <button id="grid-prev" class="icon-button" type="button" aria-label="Previous page"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+                <span id="grid-page-label" class="grid-page-label" aria-live="polite">Page 1 of 1</span>
+                <button id="grid-next" class="icon-button" type="button" aria-label="Next page"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+              </div>
+            </div>
+            <div class="table-wrap grid-wrap">
+              <table id="preview-table" class="data-grid"></table>
+            </div>
+          </div>
+          <div class="card issues-card">
+            <div class="issues-header">
+              <h3>Issues</h3>
+              <span id="issues-count" class="pill">0</span>
+            </div>
+            <ol id="issues-list" class="issues-list"></ol>
+          </div>
         </section>
 
-        <section id="result-card" class="result-card hidden" role="status" aria-live="polite">
-          <div class="result-icon" aria-hidden="true">✓</div>
-          <div>
-            <h2>DAT file is ready</h2>
-            <p id="result-summary"></p>
-            <p id="result-filename" class="result-filename"></p>
-            <a id="download-result" class="download-link" href="#" download>Download DAT file</a>
+        <section id="export-center" class="wizard-stage export-center hidden" data-wizard-stage="5" aria-labelledby="export-title">
+          <div class="section-intro">
+            <p class="section-eyebrow">Export &amp; delivery</p>
+            <h2 id="export-title">Export center</h2>
+          </div>
+          <div id="result-card" class="card result-card hidden" role="status" aria-live="polite">
+            <span class="result-icon tint-green" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+            <div class="result-body">
+              <h2>DAT file is ready</h2>
+              <p id="result-filename" class="result-filename"></p>
+              <p id="result-summary" class="result-summary"></p>
+              <dl id="export-facts" class="export-facts"></dl>
+              <div class="result-actions">
+                <a id="download-result" class="primary-button download-link" href="#" download><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg> Download DAT file</a>
+                <button id="convert-again-button" class="secondary-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Start new conversion</button>
+              </div>
+            </div>
+          </div>
+          <div class="card summary-card">
+            <div>
+              <p class="section-eyebrow">Accounting documentation</p>
+              <h3>Reconciliation summary</h3>
+              <p class="section-sub">Record counts, control totals and file details only. Payee data is not included.</p>
+            </div>
+            <div class="summary-actions">
+              <button id="download-summary-csv" class="secondary-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg> CSV</button>
+              <button id="download-summary-xlsx" class="secondary-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg> Excel</button>
+              <button id="print-summary" class="secondary-button" type="button"><svg class="icon" aria-hidden="true"><use href="#i-print"/></svg> PDF / Print</button>
+            </div>
           </div>
         </section>
 
@@ -353,11 +606,11 @@
             <button id="back-button" class="secondary-button hidden" type="button">Back</button>
             <button id="next-button" class="primary-button" type="button" disabled>
               <span>Next</span>
-              <span aria-hidden="true">→</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
             </button>
             <button id="convert-button" class="primary-button hidden" type="submit" disabled>
-              <span>Convert and download</span>
-              <span aria-hidden="true">→</span>
+              <span>Generate DAT file</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
             </button>
           </div>
         </div>
@@ -368,6 +621,210 @@
         <p>DAT format: comma-delimited header, detail, and control records.</p>
       </footer>
       </div>
-    </main>
+
+      <!-- Recent Exports View (Standard Users & Admins) -->
+      <section id="exports-view" class="view hidden" aria-labelledby="exports-title">
+        <header class="page-header page-header-row">
+          <div>
+            <p class="page-eyebrow">History</p>
+            <h1 id="exports-title">Recent Exports</h1>
+            <p class="page-description">History of your generated DAT files, record counts, and control totals.</p>
+          </div>
+          <button id="refresh-exports-btn" class="secondary-button compact-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Refresh</button>
+        </header>
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="data-table" id="exports-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Report Type</th>
+                  <th>Record Count</th>
+                  <th>Control Totals</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="exports-table-body">
+                <tr>
+                  <td colspan="5" class="empty-state">No conversions recorded yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin Management Panel (Admins Only) -->
+      <section id="admin-view" class="view hidden" aria-labelledby="admin-title">
+        <header class="page-header page-header-row">
+          <div>
+            <p class="page-eyebrow">Administration</p>
+            <h1 id="admin-title">Users</h1>
+            <p class="page-description">Manage accounts, assign roles, toggle statuses, and reset credentials.</p>
+          </div>
+          <div class="panel-actions">
+            <button id="toggle-create-user-btn" class="primary-button compact-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg> New User</button>
+            <button id="refresh-users-btn" class="secondary-button compact-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Refresh</button>
+          </div>
+        </header>
+
+        <!-- Create User Form (Collapsible) -->
+        <div id="admin-create-user-card" class="card sub-card hidden">
+          <h3>Create New User</h3>
+          <form id="admin-create-user-form" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="new-user-name">Full Name</label>
+                <input id="new-user-name" type="text" maxlength="80" required placeholder="User full name">
+              </div>
+              <div class="field">
+                <label for="new-user-email">Email Address</label>
+                <input id="new-user-email" type="email" maxlength="254" required placeholder="user@company.com">
+              </div>
+              <div class="field">
+                <label for="new-user-role">Role</label>
+                <select id="new-user-role" required>
+                  <option value="standard">Standard User</option>
+                  <option value="auditor">Auditor</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="new-user-password">Initial Password</label>
+                <input id="new-user-password" type="password" minlength="12" maxlength="128" required placeholder="Min 12 chars (A-Z, a-z, 0-9, symbol)">
+              </div>
+            </div>
+            <div id="admin-create-error" class="error-message hidden" role="alert"></div>
+            <div class="sub-card-actions">
+              <button class="primary-button compact-btn" type="submit">Create User</button>
+              <button id="cancel-create-user-btn" class="secondary-button compact-btn" type="button">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Admin Password Reset Card -->
+        <div id="admin-reset-card" class="card sub-card hidden">
+          <h3>Reset User Password</h3>
+          <p id="admin-reset-target-user" class="field-hint"></p>
+          <form id="admin-reset-form" novalidate>
+            <input id="admin-reset-user-id" type="hidden">
+            <div class="field">
+              <label for="admin-reset-password-input">New Password</label>
+              <input id="admin-reset-password-input" type="password" minlength="12" maxlength="128" required placeholder="Min 12 chars (mixed case, numbers, symbols)">
+            </div>
+            <div id="admin-reset-error" class="error-message hidden" role="alert"></div>
+            <div class="sub-card-actions">
+              <button class="primary-button compact-btn" type="submit">Apply Password</button>
+              <button id="cancel-reset-password-btn" class="secondary-button compact-btn" type="button">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="data-table" id="admin-users-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <tr>
+                  <td colspan="6" class="empty-state">Loading users...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audit Trail View (Admins & Auditors) -->
+      <section id="audit-view" class="view hidden" aria-labelledby="audit-title">
+        <header class="page-header page-header-row">
+          <div>
+            <p class="page-eyebrow">Administration · Compliance</p>
+            <h1 id="audit-title">Audit Trail</h1>
+            <p class="page-description">Log of conversions, access events, and operator management. Taxpayer identity information is never recorded.</p>
+          </div>
+          <button id="refresh-audit-btn" class="secondary-button compact-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Refresh</button>
+        </header>
+        <div class="card table-card">
+          <div class="table-wrap">
+            <table class="data-table" id="audit-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Report</th>
+                  <th>Record Count</th>
+                  <th>Control Totals</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body">
+                <tr>
+                  <td colspan="7" class="empty-state">Loading audit logs...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- System Status View (Admins & Auditors) -->
+      <section id="status-view" class="view hidden" aria-labelledby="status-title">
+        <header class="page-header page-header-row">
+          <div>
+            <p class="page-eyebrow">Administration · Telemetry</p>
+            <h1 id="status-title">System Status</h1>
+            <p class="page-description">Status indicators, host runtime, and converter throughput metrics.</p>
+          </div>
+          <button id="refresh-status-btn" class="secondary-button compact-btn" type="button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg> Refresh</button>
+        </header>
+        <div class="status-metrics-grid">
+          <div class="status-metric-card">
+            <span class="stat-icon tint-green" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+            <span class="status-metric-value status-ok">Healthy</span>
+            <span class="status-metric-label">Operational Status</span>
+          </div>
+          <div class="status-metric-card">
+            <span class="stat-icon tint-indigo" aria-hidden="true"><svg class="icon"><use href="#i-history"/></svg></span>
+            <span id="metric-uptime" class="status-metric-value">-</span>
+            <span class="status-metric-label">Server Uptime</span>
+          </div>
+          <div class="status-metric-card">
+            <span class="stat-icon tint-teal" aria-hidden="true"><svg class="icon"><use href="#i-activity"/></svg></span>
+            <span id="metric-node" class="status-metric-value">-</span>
+            <span class="status-metric-label">Node.js Runtime</span>
+          </div>
+          <div class="status-metric-card">
+            <span class="stat-icon tint-amber" aria-hidden="true"><svg class="icon"><use href="#i-device"/></svg></span>
+            <span id="metric-memory" class="status-metric-value">-</span>
+            <span class="status-metric-label">Memory Usage</span>
+          </div>
+          <div class="status-metric-card">
+            <span class="stat-icon tint-indigo" aria-hidden="true"><svg class="icon"><use href="#i-users"/></svg></span>
+            <span id="metric-users" class="status-metric-value">-</span>
+            <span class="status-metric-label">Registered Users</span>
+          </div>
+          <div class="status-metric-card">
+            <span class="stat-icon tint-green" aria-hidden="true"><svg class="icon"><use href="#i-convert"/></svg></span>
+            <span id="metric-conversions" class="status-metric-value">-</span>
+            <span class="status-metric-label">Total Conversions Run</span>
+          </div>
+        </div>
+      </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- Print-only reconciliation summary (filled by app.js before window.print()) -->
+    <section id="reconciliation-print" class="reconciliation-print" aria-hidden="true"></section>
   </body>
 </html>
